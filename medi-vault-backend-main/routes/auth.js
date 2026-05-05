@@ -447,6 +447,41 @@ router.delete('/delete-account', protect, async (req, res) => {
   }
 });
 
+router.get('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    let profile = {
+      id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone_number: user.phone_number || '',
+      role: user.role,
+    };
+
+    if (user.role === 'patient') {
+      const patient = await Patient.findOne({ user_id: user._id });
+      if (patient) {
+        profile.date_of_birth = patient.date_of_birth || null;
+        profile.gender = patient.gender || '';
+        profile.address = patient.address || '';
+      }
+    } else if (user.role === 'doctor') {
+      const provider = await HealthcareProvider.findOne({ user_id: user._id });
+      if (provider) {
+        profile.specialization = provider.specialization || '';
+        profile.organisation_name = provider.organisation_name || '';
+      }
+    }
+
+    res.status(200).json({ success: true, profile });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 router.put('/profile', protect, async (req, res) => {
   try {
     const { first_name, last_name, phone_number } = req.body;
@@ -455,7 +490,24 @@ router.put('/profile', protect, async (req, res) => {
       { first_name, last_name, phone_number },
       { new: true, runValidators: true }
     );
-    res.status(200).json({ success: true, user });
+
+    if (user.role === 'patient') {
+      const { date_of_birth, gender, address } = req.body;
+      await Patient.findOneAndUpdate(
+        { user_id: user._id },
+        { date_of_birth, gender, address },
+        { runValidators: true }
+      );
+    } else if (user.role === 'doctor') {
+      const { specialization, organisation_name } = req.body;
+      await HealthcareProvider.findOneAndUpdate(
+        { user_id: user._id },
+        { specialization, organisation_name },
+        { runValidators: true }
+      );
+    }
+
+    res.status(200).json({ success: true, message: 'Profile updated successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
