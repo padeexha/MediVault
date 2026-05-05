@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
 import '../auth/login_screen.dart';
+import '../profile/edit_profile_screen.dart';
 import 'shared_records_screen.dart';
 
 const _appLogo = 'assets/images/MediVault Logo.png';
@@ -85,12 +86,28 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
         actions: [
           PopupMenuButton<String>(
             tooltip: 'Menu',
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'logout') {
                 _logout();
+              } else if (value == 'edit_profile') {
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+                if (updated == true) _loadData();
               }
             },
             itemBuilder: (context) => const [
+              PopupMenuItem<String>(
+                value: 'edit_profile',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 10),
+                    Text('Edit Profile'),
+                  ],
+                ),
+              ),
               PopupMenuItem<String>(value: 'logout', child: Text('Logout')),
             ],
           ),

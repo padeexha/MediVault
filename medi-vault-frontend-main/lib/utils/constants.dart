@@ -10,6 +10,7 @@ class Constants {
   static const String login = '$baseUrl/auth/login';
   static const String logout = '$baseUrl/auth/logout';
   static const String forgotPassword = '$baseUrl/auth/forgot-password';
+  static const String getProfile = '$baseUrl/auth/profile';
   static const String updateProfile = '$baseUrl/auth/profile';
 
   // Record endpoints
