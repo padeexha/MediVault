@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import '../../utils/constants.dart';
 import '../../models/record_model.dart';
 import '../auth/login_screen.dart';
+import '../profile/edit_profile_screen.dart';
 import 'upload_record_screen.dart';
 import 'record_list_screen.dart';
 import 'permissions_screen.dart';
@@ -95,12 +96,28 @@ class _PatientDashboardState extends State<PatientDashboard> {
         actions: [
           PopupMenuButton<String>(
             tooltip: 'Menu',
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'logout') {
                 _logout();
+              } else if (value == 'edit_profile') {
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+                if (updated == true) _loadData();
               }
             },
             itemBuilder: (context) => const [
+              PopupMenuItem<String>(
+                value: 'edit_profile',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 10),
+                    Text('Edit Profile'),
+                  ],
+                ),
+              ),
               PopupMenuItem<String>(value: 'logout', child: Text('Logout')),
             ],
           ),
