@@ -1,7 +1,7 @@
 class Constants {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://medi-vault-backend-28w8.onrender.com/api',
+    defaultValue: 'https://medivault-ejaa.onrender.com/api',
   );
 
   // Auth endpoints
