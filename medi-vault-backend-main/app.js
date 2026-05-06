@@ -120,7 +120,7 @@ app.get('/reset-password/:token', async (req, res) => {
               return;
             }
 
-            const response = await fetch('https://medi-vault-backend-28w8.onrender.com/api/auth/reset-password/' + token, {
+            const response = await fetch('https://medivault-ejaa.onrender.com/api/auth/reset-password/' + token, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ password })
