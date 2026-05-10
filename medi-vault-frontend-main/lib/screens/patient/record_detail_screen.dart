@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/record_model.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RecordDetailScreen extends StatefulWidget {
   final RecordModel record;
-
   const RecordDetailScreen({super.key, required this.record});
 
   @override
@@ -18,7 +18,6 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
   final _notesController = TextEditingController();
   bool _isEditing = false;
   bool _isLoading = false;
-  bool _canEdit = false;
   String _selectedCategory = '';
 
   final List<Map<String, String>> _categories = [
@@ -35,13 +34,6 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     _titleController.text = widget.record.title;
     _notesController.text = widget.record.notes ?? '';
     _selectedCategory = widget.record.category;
-    _loadRole();
-  }
-
-  Future<void> _loadRole() async {
-    final user = await ApiService.getUser();
-    if (!mounted) return;
-    setState(() => _canEdit = user?['role'] == 'patient');
   }
 
   @override
@@ -61,23 +53,17 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
         'category': _selectedCategory,
       },
     );
-    if (!mounted) return;
     setState(() => _isLoading = false);
-
+    if (!mounted) return;
     if (response['success'] == true) {
       setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Record updated successfully'),
-          backgroundColor: Color(0xFF0F6E56),
-        ),
+        const SnackBar(content: Text('Record updated successfully')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(response['message'] ?? 'Update failed'),
-          backgroundColor: Colors.red,
-        ),
+            content: Text(response['message'] ?? 'Update failed')),
       );
     }
   }
@@ -88,202 +74,188 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       {},
     );
     if (!mounted) return;
-
     if (response['success'] == true) {
-      final url = response['download_url'] ?? widget.record.filePath;
-      final uri = Uri.parse(url);
+      final uri = Uri.parse(widget.record.filePath);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open file'),
-            backgroundColor: Colors.red,
-          ),
+          const SnackBar(content: Text('Could not open file')),
         );
       }
     }
   }
+
   Color get _categoryColor {
-    switch (_selectedCategory) {
+    switch (widget.record.category) {
       case 'lab_report': return const Color(0xFF185FA5);
-      case 'prescription': return const Color(0xFF0F6E56);
+      case 'prescription': return const Color(0xFF1D9E75);
       case 'radiology': return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default: return Colors.grey;
+      default: return AppColors.textSecondary;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Record Details'),
+      backgroundColor: AppColors.bg,
+      appBar: darkGlassAppBar(
+        title: 'Record Details',
         actions: [
-          if (_canEdit)
-            IconButton(
-              icon: Icon(_isEditing ? Icons.close : Icons.edit),
-              onPressed: () => setState(() => _isEditing = !_isEditing),
-            ),
+          IconButton(
+            icon: Icon(_isEditing ? Icons.close : Icons.edit_outlined),
+            onPressed: () => setState(() => _isEditing = !_isEditing),
+          ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: _categoryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _categoryColor.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
+            DarkListCard(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _categoryColor.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        widget.record.categoryDisplay,
+                        style: TextStyle(
+                          color: _categoryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: _categoryColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _categoryDisplay(_selectedCategory),
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.record.title,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _titleController.text,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Uploaded on ${widget.record.uploadDate.day}/${widget.record.uploadDate.month}/${widget.record.uploadDate.year}',
+                      style:
+                          const TextStyle(color: AppColors.textSecondary),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Uploaded on ${widget.record.uploadDate.day}/${widget.record.uploadDate.month}/${widget.record.uploadDate.year}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (_isEditing) ...[
-              const Text(
-                'Edit Record',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  ],
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
+            if (_isEditing) ...[
+              const Text('Edit Record',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  prefixIcon: Icon(Icons.title),
-                ),
+                style: const TextStyle(color: Colors.white),
+                decoration:
+                    darkInputDecoration('Title', prefixIcon: Icons.title),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  prefixIcon: Icon(Icons.category),
-                ),
+                initialValue: _selectedCategory,
+                dropdownColor: AppColors.bgCard,
+                style: const TextStyle(color: Colors.white),
+                decoration: darkInputDecoration('Category',
+                    prefixIcon: Icons.category),
                 items: _categories.map((cat) {
                   return DropdownMenuItem(
                     value: cat['value'],
                     child: Text(cat['label']!),
                   );
                 }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedCategory = value);
-                  }
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedCategory = v);
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Notes',
-                  prefixIcon: Icon(Icons.notes),
-                  alignLabelWithHint: true,
-                ),
+                style: const TextStyle(color: Colors.white),
+                decoration:
+                    darkInputDecoration('Notes', prefixIcon: Icons.notes),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveChanges,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text('Save Changes'),
+              DarkButton(
+                label: 'Save Changes',
+                onPressed: _saveChanges,
+                isLoading: _isLoading,
               ),
             ] else ...[
-              const Text(
-                'File Information',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _InfoRow(label: 'File name', value: widget.record.fileName),
-              _InfoRow(label: 'File type', value: widget.record.fileType),
-              _InfoRow(
-                label: 'File size',
-                value: '${(widget.record.fileSize / 1024).toStringAsFixed(1)} KB',
-              ),
-              if (_notesController.text.trim().isNotEmpty) ...[
-                const SizedBox(height: 24),
-                const Text(
-                  'Notes',
+              const Text('File Information',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              DarkListCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _infoRow('File name', widget.record.fileName),
+                      _infoRow('File type', widget.record.fileType),
+                      _infoRow(
+                        'File size',
+                        '${(widget.record.fileSize / 1024).toStringAsFixed(1)} KB',
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
+              ),
+              if (widget.record.notes != null &&
+                  widget.record.notes!.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                const Text('Notes',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                DarkListCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      widget.record.notes!,
+                      style:
+                          const TextStyle(color: AppColors.textSecondary),
+                    ),
                   ),
-                  child: Text(_notesController.text.trim()),
                 ),
               ],
               const SizedBox(height: 24),
-              OutlinedButton.icon(
-                onPressed: _logDownload,
-                icon: const Icon(Icons.download),
-                label: const Text('Download Record'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52),
-                  foregroundColor: const Color(0xFF0F6E56),
-                  side: const BorderSide(color: Color(0xFF0F6E56)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton.icon(
+                  onPressed: _logDownload,
+                  icon: const Icon(Icons.download, color: AppColors.accent),
+                  label: const Text('Download Record',
+                      style: TextStyle(color: AppColors.accent)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.accent),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
               ),
@@ -293,54 +265,25 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       ),
     );
   }
-}
 
-String _categoryDisplay(String category) {
-  switch (category) {
-    case 'lab_report':
-      return 'Lab Report';
-    case 'prescription':
-      return 'Prescription';
-    case 'radiology':
-      return 'Radiology';
-    case 'discharge_summary':
-      return 'Discharge Summary';
-    default:
-      return 'Other';
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _infoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
+            width: 90,
+            child: Text(label,
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13)),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
+            child: Text(value,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13)),
           ),
         ],
       ),

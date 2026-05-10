@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/app_theme.dart';
 import '../../models/record_model.dart';
 import 'record_detail_screen.dart';
 
@@ -23,7 +24,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
     {'value': 'lab_report', 'label': 'Lab Report'},
     {'value': 'prescription', 'label': 'Prescription'},
     {'value': 'radiology', 'label': 'Radiology'},
-    {'value': 'discharge_summary', 'label': 'Discharge Summary'},
+    {'value': 'discharge_summary', 'label': 'Discharge'},
     {'value': 'other', 'label': 'Other'},
   ];
 
@@ -52,13 +53,12 @@ class _RecordListScreenState extends State<RecordListScreen> {
 
   void _filterRecords() {
     setState(() {
-      _filteredRecords = _records.where((record) {
-        final matchesSearch = record.title
-            .toLowerCase()
-            .contains(_searchQuery.toLowerCase());
-        final matchesCategory =
-            _selectedCategory == 'all' || record.category == _selectedCategory;
-        return matchesSearch && matchesCategory;
+      _filteredRecords = _records.where((r) {
+        final matchSearch =
+            r.title.toLowerCase().contains(_searchQuery.toLowerCase());
+        final matchCat =
+            _selectedCategory == 'all' || r.category == _selectedCategory;
+        return matchSearch && matchCat;
       }).toList();
     });
   }
@@ -68,12 +68,11 @@ class _RecordListScreenState extends State<RecordListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Record'),
-        content: Text('Are you sure you want to delete "${record.title}"?'),
+        content: Text('Delete "${record.title}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -82,35 +81,31 @@ class _RecordListScreenState extends State<RecordListScreen> {
         ],
       ),
     );
-
     if (confirmed == true) {
       final response =
           await ApiService.delete('${Constants.records}/${record.id}');
       if (!mounted) return;
       if (response['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Record deleted'),
-            backgroundColor: Color(0xFF0F6E56),
-          ),
+          const SnackBar(content: Text('Record deleted')),
         );
         _loadRecords();
       }
     }
   }
 
-  Color _categoryColor(String category) {
-    switch (category) {
+  Color _categoryColor(String cat) {
+    switch (cat) {
       case 'lab_report': return const Color(0xFF185FA5);
-      case 'prescription': return const Color(0xFF0F6E56);
+      case 'prescription': return const Color(0xFF1D9E75);
       case 'radiology': return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default: return Colors.grey;
+      default: return AppColors.textSecondary;
     }
   }
 
-  IconData _categoryIcon(String category) {
-    switch (category) {
+  IconData _categoryIcon(String cat) {
+    switch (cat) {
       case 'lab_report': return Icons.science;
       case 'prescription': return Icons.medication;
       case 'radiology': return Icons.image_search;
@@ -122,27 +117,21 @@ class _RecordListScreenState extends State<RecordListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Records'),
-      ),
+      backgroundColor: AppColors.bg,
+      appBar: darkGlassAppBar(title: 'My Records'),
       body: Column(
         children: [
+          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
                 TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search records...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  onChanged: (value) {
-                    _searchQuery = value;
+                  style: const TextStyle(color: Colors.white),
+                  decoration: darkInputDecoration('Search records...',
+                      prefixIcon: Icons.search),
+                  onChanged: (v) {
+                    _searchQuery = v;
                     _filterRecords();
                   },
                 ),
@@ -152,35 +141,41 @@ class _RecordListScreenState extends State<RecordListScreen> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: _categories.length,
-                    itemBuilder: (context, index) {
-                      final cat = _categories[index];
-                      final isSelected = _selectedCategory == cat['value'];
+                    itemBuilder: (_, i) {
+                      final cat = _categories[i];
+                      final selected = _selectedCategory == cat['value'];
                       return GestureDetector(
                         onTap: () {
                           setState(() => _selectedCategory = cat['value']!);
                           _filterRecords();
                         },
-                        child: Container(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
                           margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 14),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF0F6E56)
-                                : Colors.white,
+                            color: selected
+                                ? AppColors.accentBlue
+                                : AppColors.bgSurface,
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
-                              color: const Color(0xFF0F6E56),
+                              color: selected
+                                  ? AppColors.accentBlue
+                                  : Colors.white.withValues(alpha: 0.12),
                             ),
                           ),
                           child: Center(
                             child: Text(
                               cat['label']!,
                               style: TextStyle(
-                                color: isSelected
+                                color: selected
                                     ? Colors.white
-                                    : const Color(0xFF0F6E56),
+                                    : AppColors.textSecondary,
                                 fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: selected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -192,26 +187,27 @@ class _RecordListScreenState extends State<RecordListScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 8),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child:
+                        CircularProgressIndicator(color: AppColors.accent))
                 : _filteredRecords.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.folder_open,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
+                            Icon(Icons.folder_open,
+                                size: 64,
+                                color: Colors.white.withValues(alpha: 0.2)),
                             const SizedBox(height: 16),
                             Text(
                               _records.isEmpty
                                   ? 'No records yet'
                                   : 'No records found',
-                              style: TextStyle(
-                                color: Colors.grey[600],
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
                                 fontSize: 16,
                               ),
                             ),
@@ -219,64 +215,63 @@ class _RecordListScreenState extends State<RecordListScreen> {
                         ),
                       )
                     : RefreshIndicator(
+                        color: AppColors.accent,
+                        backgroundColor: AppColors.bgCard,
                         onRefresh: _loadRecords,
                         child: ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: _filteredRecords.length,
-                          itemBuilder: (context, index) {
-                            final record = _filteredRecords[index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border:
-                                    Border.all(color: Colors.grey.shade200),
+                          itemBuilder: (_, i) {
+                            final record = _filteredRecords[i];
+                            final color = _categoryColor(record.category);
+                            return DarkListCard(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      RecordDetailScreen(record: record),
+                                ),
                               ),
                               child: ListTile(
-                                contentPadding: const EdgeInsets.all(16),
+                                contentPadding: const EdgeInsets.all(14),
                                 leading: Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: _categoryColor(record.category)
-                                        .withOpacity(0.1),
+                                    color: color.withValues(alpha: 0.18),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
-                                    _categoryIcon(record.category),
-                                    color: _categoryColor(record.category),
-                                  ),
+                                      _categoryIcon(record.category),
+                                      color: color),
                                 ),
                                 title: Text(
                                   record.title,
                                   style: const TextStyle(
+                                    color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     const SizedBox(height: 4),
-                                    Text(record.categoryDisplay),
+                                    Text(record.categoryDisplay,
+                                        style: const TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 12)),
                                     Text(
                                       '${record.uploadDate.day}/${record.uploadDate.month}/${record.uploadDate.year}',
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 11),
                                     ),
                                   ],
                                 ),
                                 trailing: IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                  ),
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.redAccent),
                                   onPressed: () => _deleteRecord(record),
-                                ),
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        RecordDetailScreen(record: record),
-                                  ),
                                 ),
                               ),
                             );

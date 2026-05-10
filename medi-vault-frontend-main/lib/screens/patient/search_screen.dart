@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/app_theme.dart';
 import '../../models/record_model.dart';
 import 'record_detail_screen.dart';
 
@@ -27,7 +28,7 @@ class _SearchScreenState extends State<SearchScreen> {
     {'value': 'lab_report', 'label': 'Lab Report'},
     {'value': 'prescription', 'label': 'Prescription'},
     {'value': 'radiology', 'label': 'Radiology'},
-    {'value': 'discharge_summary', 'label': 'Discharge Summary'},
+    {'value': 'discharge_summary', 'label': 'Discharge'},
     {'value': 'other', 'label': 'Other'},
   ];
 
@@ -49,21 +50,16 @@ class _SearchScreenState extends State<SearchScreen> {
       _isLoading = true;
       _hasSearched = true;
     });
-
-    final query = <String, String>{
-      if (_searchController.text.trim().isNotEmpty)
-        'title': _searchController.text.trim(),
-      if (_selectedCategory != 'all') 'category': _selectedCategory,
-      if (_dateFrom != null) 'date_from': _dateFrom!.toIso8601String(),
-      if (_dateTo != null) 'date_to': _dateTo!.toIso8601String(),
-      'sort_by': _selectedSort,
-    };
-    final url = Uri.parse(Constants.search)
-        .replace(queryParameters: query)
-        .toString();
+    String url = '${Constants.search}?';
+    if (_searchController.text.trim().isNotEmpty) {
+      url += 'title=${_searchController.text.trim()}&';
+    }
+    if (_selectedCategory != 'all') url += 'category=$_selectedCategory&';
+    if (_dateFrom != null) url += 'date_from=${_dateFrom!.toIso8601String()}&';
+    if (_dateTo != null) url += 'date_to=${_dateTo!.toIso8601String()}&';
+    url += 'sort_by=$_selectedSort';
 
     final response = await ApiService.get(url);
-
     if (response['success'] == true) {
       final records = (response['records'] as List)
           .map((r) => RecordModel.fromJson(r))
@@ -77,36 +73,22 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<void> _pickDateFrom() async {
+  Future<void> _pickDate(bool isFrom) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _dateFrom ?? DateTime.now(),
+      initialDate: (isFrom ? _dateFrom : _dateTo) ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: Color(0xFF0F6E56)),
-        ),
-        child: child!,
-      ),
     );
-    if (picked != null) setState(() => _dateFrom = picked);
-  }
-
-  Future<void> _pickDateTo() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _dateTo ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: Color(0xFF0F6E56)),
-        ),
-        child: child!,
-      ),
-    );
-    if (picked != null) setState(() => _dateTo = picked);
+    if (picked != null) {
+      setState(() {
+        if (isFrom) {
+          _dateFrom = picked;
+        } else {
+          _dateTo = picked;
+        }
+      });
+    }
   }
 
   void _clearFilters() {
@@ -121,18 +103,18 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  Color _categoryColor(String category) {
-    switch (category) {
+  Color _categoryColor(String cat) {
+    switch (cat) {
       case 'lab_report': return const Color(0xFF185FA5);
-      case 'prescription': return const Color(0xFF0F6E56);
+      case 'prescription': return const Color(0xFF1D9E75);
       case 'radiology': return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default: return Colors.grey;
+      default: return AppColors.textSecondary;
     }
   }
 
-  IconData _categoryIcon(String category) {
-    switch (category) {
+  IconData _categoryIcon(String cat) {
+    switch (cat) {
       case 'lab_report': return Icons.science;
       case 'prescription': return Icons.medication;
       case 'radiology': return Icons.image_search;
@@ -144,23 +126,22 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search Records'),
+      backgroundColor: AppColors.bg,
+      appBar: darkGlassAppBar(
+        title: 'Search Records',
         actions: [
           if (_hasSearched || _dateFrom != null || _dateTo != null)
             TextButton(
               onPressed: _clearFilters,
-              child: const Text(
-                'Clear',
-                style: TextStyle(color: Color(0xFF0F6E56)),
-              ),
+              child: const Text('Clear',
+                  style: TextStyle(color: AppColors.accent)),
             ),
         ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Column(
               children: [
                 Row(
@@ -168,64 +149,67 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search by title...',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: darkInputDecoration('Search by title...',
+                            prefixIcon: Icons.search),
                         onSubmitted: (_) => _search(),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: _search,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(60, 52),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _search,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
+                        child: const Icon(Icons.search, size: 20),
                       ),
-                      child: const Icon(Icons.search),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                // Category filter chips
+                const SizedBox(height: 10),
                 SizedBox(
                   height: 36,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: _categories.length,
-                    itemBuilder: (context, index) {
-                      final cat = _categories[index];
-                      final isSelected = _selectedCategory == cat['value'];
+                    itemBuilder: (_, i) {
+                      final cat = _categories[i];
+                      final selected = _selectedCategory == cat['value'];
                       return GestureDetector(
-                        onTap: () {
-                          setState(() => _selectedCategory = cat['value']!);
-                        },
-                        child: Container(
+                        onTap: () =>
+                            setState(() => _selectedCategory = cat['value']!),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
                           margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 14),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF0F6E56)
-                                : Colors.white,
+                            color: selected
+                                ? AppColors.accentBlue
+                                : AppColors.bgSurface,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: const Color(0xFF0F6E56)),
+                            border: Border.all(
+                              color: selected
+                                  ? AppColors.accentBlue
+                                  : Colors.white.withValues(alpha: 0.12),
+                            ),
                           ),
                           child: Center(
                             child: Text(
                               cat['label']!,
                               style: TextStyle(
-                                color: isSelected
+                                color: selected
                                     ? Colors.white
-                                    : const Color(0xFF0F6E56),
+                                    : AppColors.textSecondary,
                                 fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: selected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -234,124 +218,39 @@ class _SearchScreenState extends State<SearchScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Date range and sort row
+                const SizedBox(height: 10),
                 Row(
                   children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _pickDateFrom,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: _dateFrom != null
-                                  ? const Color(0xFF0F6E56)
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today,
-                                size: 14,
-                                color: _dateFrom != null
-                                    ? const Color(0xFF0F6E56)
-                                    : Colors.grey,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _dateFrom != null
-                                    ? DateFormat('dd/MM/yy').format(_dateFrom!)
-                                    : 'From date',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: _dateFrom != null
-                                      ? const Color(0xFF0F6E56)
-                                      : Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    Expanded(child: _datePicker('From', _dateFrom, () => _pickDate(true))),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _pickDateTo,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: _dateTo != null
-                                  ? const Color(0xFF0F6E56)
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today,
-                                size: 14,
-                                color: _dateTo != null
-                                    ? const Color(0xFF0F6E56)
-                                    : Colors.grey,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _dateTo != null
-                                    ? DateFormat('dd/MM/yy').format(_dateTo!)
-                                    : 'To date',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: _dateTo != null
-                                      ? const Color(0xFF0F6E56)
-                                      : Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    Expanded(child: _datePicker('To', _dateTo, () => _pickDate(false))),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        height: 44,
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.bgSurface,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1)),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSort,
                             isExpanded: true,
+                            dropdownColor: AppColors.bgCard,
                             style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
+                                color: Colors.white, fontSize: 12),
                             items: _sortOptions.map((opt) {
                               return DropdownMenuItem(
                                 value: opt['value'],
                                 child: Text(opt['label']!),
                               );
                             }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _selectedSort = value);
-                              }
+                            onChanged: (v) {
+                              if (v != null) setState(() => _selectedSort = v);
                             },
                           ),
                         ),
@@ -362,35 +261,31 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 8),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child:
+                        CircularProgressIndicator(color: AppColors.accent))
                 : !_hasSearched
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.search,
-                              size: 64,
-                              color: Colors.grey[300],
-                            ),
+                            Icon(Icons.search,
+                                size: 64,
+                                color: Colors.white.withValues(alpha: 0.15)),
                             const SizedBox(height: 16),
-                            Text(
-                              'Search your medical records',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Filter by title, category, date or sort order',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 13,
-                              ),
-                            ),
+                            const Text('Search your medical records',
+                                style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 16)),
+                            const SizedBox(height: 6),
+                            const Text(
+                                'Filter by title, category, or date',
+                                style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 13)),
                           ],
                         ),
                       )
@@ -399,19 +294,15 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
-                                  Icons.find_in_page_outlined,
-                                  size: 64,
-                                  color: Colors.grey[300],
-                                ),
+                                Icon(Icons.find_in_page_outlined,
+                                    size: 64,
+                                    color:
+                                        Colors.white.withValues(alpha: 0.15)),
                                 const SizedBox(height: 16),
-                                Text(
-                                  'No records found',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                const Text('No records found',
+                                    style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 16)),
                               ],
                             ),
                           )
@@ -419,58 +310,51 @@ class _SearchScreenState extends State<SearchScreen> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: _results.length,
-                            itemBuilder: (context, index) {
-                              final record = _results[index];
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.grey.shade200,
+                            itemBuilder: (_, i) {
+                              final record = _results[i];
+                              final color = _categoryColor(record.category);
+                              return DarkListCard(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        RecordDetailScreen(record: record),
                                   ),
                                 ),
                                 child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
+                                  contentPadding: const EdgeInsets.all(14),
                                   leading: Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: _categoryColor(record.category)
-                                          .withAlpha(25),
-                                      borderRadius: BorderRadius.circular(10),
+                                      color: color.withValues(alpha: 0.18),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
                                     ),
                                     child: Icon(
-                                      _categoryIcon(record.category),
-                                      color: _categoryColor(record.category),
-                                    ),
+                                        _categoryIcon(record.category),
+                                        color: color),
                                   ),
-                                  title: Text(
-                                    record.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  title: Text(record.title,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
                                   subtitle: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 4),
-                                      Text(record.categoryDisplay),
+                                      Text(record.categoryDisplay,
+                                          style: const TextStyle(
+                                              color: AppColors.textSecondary,
+                                              fontSize: 12)),
                                       Text(
                                         DateFormat('dd/MM/yyyy')
                                             .format(record.uploadDate),
-                                        style:
-                                            const TextStyle(fontSize: 12),
+                                        style: const TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 11),
                                       ),
                                     ],
-                                  ),
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => RecordDetailScreen(
-                                        record: record,
-                                      ),
-                                    ),
                                   ),
                                 ),
                               );
@@ -478,6 +362,42 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _datePicker(String hint, DateTime? date, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: date != null
+                ? AppColors.accentBlue
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today,
+                size: 13,
+                color: date != null
+                    ? AppColors.accent
+                    : AppColors.textSecondary),
+            const SizedBox(width: 6),
+            Text(
+              date != null ? DateFormat('dd/MM/yy').format(date) : hint,
+              style: TextStyle(
+                fontSize: 12,
+                color: date != null ? Colors.white : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

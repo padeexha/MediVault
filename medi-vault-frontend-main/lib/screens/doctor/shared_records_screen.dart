@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/app_theme.dart';
 import '../../models/record_model.dart';
-import '../patient/record_detail_screen.dart';
 
 class SharedRecordsScreen extends StatefulWidget {
   const SharedRecordsScreen({super.key});
@@ -35,18 +34,18 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
     }
   }
 
-  Color _categoryColor(String category) {
-    switch (category) {
+  Color _categoryColor(String cat) {
+    switch (cat) {
       case 'lab_report': return const Color(0xFF185FA5);
-      case 'prescription': return const Color(0xFF0F6E56);
+      case 'prescription': return const Color(0xFF1D9E75);
       case 'radiology': return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default: return Colors.grey;
+      default: return AppColors.textSecondary;
     }
   }
 
-  IconData _categoryIcon(String category) {
-    switch (category) {
+  IconData _categoryIcon(String cat) {
+    switch (cat) {
       case 'lab_report': return Icons.science;
       case 'prescription': return Icons.medication;
       case 'radiology': return Icons.image_search;
@@ -55,70 +54,46 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
     }
   }
 
-  Future<void> _downloadRecord(RecordModel record) async {
-    final response = await ApiService.post(
-      '${Constants.records}/${record.id}/download',
-      {},
-    );
+  Future<void> _logDownload(String recordId, String title) async {
+    await ApiService.post('${Constants.records}/$recordId/download', {});
     if (!mounted) return;
-    if (response['success'] == true) {
-      final uri = Uri.parse(response['download_url'] ?? record.filePath);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open file'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(response['message'] ?? 'Download failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Download logged for: $title')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Shared Records'),
-      ),
+      backgroundColor: AppColors.bg,
+      appBar: darkGlassAppBar(title: 'Shared Records'),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.accent))
           : _patientData.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.folder_open,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
+                      Icon(Icons.folder_open,
+                          size: 64,
+                          color: Colors.white.withValues(alpha: 0.2)),
                       const SizedBox(height: 16),
-                      Text(
-                        'No records shared with you yet',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 16,
-                        ),
-                      ),
+                      const Text('No records shared with you yet',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 16)),
                     ],
                   ),
                 )
               : RefreshIndicator(
+                  color: AppColors.accent,
+                  backgroundColor: AppColors.bgCard,
                   onRefresh: _loadSharedRecords,
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _patientData.length,
-                    itemBuilder: (context, index) {
-                      final item = _patientData[index];
+                    itemBuilder: (_, i) {
+                      final item = _patientData[i];
                       final patient = item['patient'];
                       final records = (item['records'] as List)
                           .map((r) => RecordModel.fromJson(r))
@@ -128,100 +103,87 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: 8,
-                              top: 8,
-                            ),
+                            padding:
+                                const EdgeInsets.only(top: 8, bottom: 10),
                             child: Row(
                               children: [
-                                const Icon(
-                                  Icons.person,
-                                  size: 16,
-                                  color: Color(0xFF185FA5),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accentBlue
+                                        .withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.person,
+                                      size: 14,
+                                      color: AppColors.accentBlue),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  patient['name'] ?? 'Unknown Patient',
+                                  'Patient: ${patient['_id'].toString().substring(0, 8)}...',
                                   style: const TextStyle(
+                                    color: AppColors.accentBlue,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF185FA5),
+                                    fontSize: 13,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
+                                      horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF185FA5)
-                                        .withOpacity(0.1),
+                                    color: AppColors.accentBlue
+                                        .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     '${records.length} records',
                                     style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF185FA5),
-                                    ),
+                                        color: AppColors.accentBlue,
+                                        fontSize: 11),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           ...records.map((record) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border:
-                                    Border.all(color: Colors.grey.shade200),
-                              ),
+                            final color = _categoryColor(record.category);
+                            return DarkListCard(
                               child: ListTile(
                                 contentPadding: const EdgeInsets.all(12),
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: _categoryColor(record.category)
-                                        .withOpacity(0.1),
+                                    color: color.withValues(alpha: 0.18),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
-                                    _categoryIcon(record.category),
-                                    color: _categoryColor(record.category),
-                                    size: 20,
-                                  ),
+                                      _categoryIcon(record.category),
+                                      color: color,
+                                      size: 20),
                                 ),
-                                title: Text(
-                                  record.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
+                                title: Text(record.title,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14)),
                                 subtitle: Text(
                                   '${record.categoryDisplay} · ${record.uploadDate.day}/${record.uploadDate.month}/${record.uploadDate.year}',
-                                  style: const TextStyle(fontSize: 12),
+                                  style: const TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12),
                                 ),
                                 trailing: IconButton(
-                                  icon: const Icon(
-                                    Icons.download_outlined,
-                                    color: Color(0xFF185FA5),
-                                  ),
-                                  onPressed: () => _downloadRecord(record),
-                                ),
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        RecordDetailScreen(record: record),
-                                  ),
+                                  icon: const Icon(Icons.download_outlined,
+                                      color: AppColors.accent),
+                                  onPressed: () =>
+                                      _logDownload(record.id, record.title),
                                 ),
                               ),
                             );
                           }),
-                          const Divider(),
+                          Divider(
+                              color: Colors.white.withValues(alpha: 0.07)),
                         ],
                       );
                     },

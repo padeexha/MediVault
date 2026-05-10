@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/app_theme.dart';
 
 class UploadRecordScreen extends StatefulWidget {
   const UploadRecordScreen({super.key});
@@ -40,7 +41,6 @@ class _UploadRecordScreenState extends State<UploadRecordScreen> {
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
     );
-
     if (result != null && result.files.single.path != null) {
       setState(() {
         _selectedFile = File(result.files.single.path!);
@@ -53,16 +53,11 @@ class _UploadRecordScreenState extends State<UploadRecordScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a file to upload'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Please select a file to upload')),
       );
       return;
     }
-
     setState(() => _isLoading = true);
-
     final response = await ApiService.uploadFile(
       Constants.uploadRecord,
       _selectedFile!,
@@ -72,25 +67,16 @@ class _UploadRecordScreenState extends State<UploadRecordScreen> {
         'notes': _notesController.text.trim(),
       },
     );
-
     setState(() => _isLoading = false);
-
     if (!mounted) return;
-
     if (response['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Record uploaded successfully'),
-          backgroundColor: Color(0xFF0F6E56),
-        ),
+        const SnackBar(content: Text('Record uploaded successfully')),
       );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(response['message'] ?? 'Upload failed'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(response['message'] ?? 'Upload failed')),
       );
     }
   }
@@ -98,11 +84,10 @@ class _UploadRecordScreenState extends State<UploadRecordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Upload Record'),
-      ),
+      backgroundColor: AppColors.bg,
+      appBar: darkGlassAppBar(title: 'Upload Record'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -110,87 +95,87 @@ class _UploadRecordScreenState extends State<UploadRecordScreen> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Record title',
-                  prefixIcon: Icon(Icons.title),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter a title' : null,
+                style: const TextStyle(color: Colors.white),
+                decoration: darkInputDecoration('Record title',
+                    prefixIcon: Icons.title),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Please enter a title' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  prefixIcon: Icon(Icons.category),
-                ),
+                initialValue: _selectedCategory,
+                dropdownColor: AppColors.bgCard,
+                style: const TextStyle(color: Colors.white),
+                decoration: darkInputDecoration('Category',
+                    prefixIcon: Icons.category),
                 items: _categories.map((cat) {
                   return DropdownMenuItem(
                     value: cat['value'],
                     child: Text(cat['label']!),
                   );
                 }).toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _selectedCategory = value);
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedCategory = v);
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  prefixIcon: Icon(Icons.notes),
-                  alignLabelWithHint: true,
-                ),
+                style: const TextStyle(color: Colors.white),
+                decoration: darkInputDecoration('Notes (optional)',
+                    prefixIcon: Icons.notes),
               ),
               const SizedBox(height: 24),
               const Text(
                 'Select File',
                 style: TextStyle(
+                  color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: 6),
+              Text(
                 'Supported formats: PDF, JPEG, PNG (max 20MB)',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(
+                    color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: _pickFile,
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
                   width: double.infinity,
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: _selectedFile != null
-                          ? const Color(0xFF0F6E56)
-                          : Colors.grey.shade300,
-                      width: _selectedFile != null ? 2 : 1,
+                          ? AppColors.accentBlue
+                          : Colors.white.withValues(alpha: 0.1),
+                      width: _selectedFile != null ? 1.5 : 1,
                     ),
                   ),
                   child: Column(
                     children: [
                       Icon(
                         _selectedFile != null
-                            ? Icons.check_circle
+                            ? Icons.check_circle_outline
                             : Icons.cloud_upload_outlined,
                         size: 48,
                         color: _selectedFile != null
-                            ? const Color(0xFF0F6E56)
-                            : Colors.grey,
+                            ? AppColors.accent
+                            : AppColors.textSecondary,
                       ),
                       const SizedBox(height: 12),
                       Text(
                         _selectedFileName ?? 'Tap to select a file',
                         style: TextStyle(
                           color: _selectedFile != null
-                              ? const Color(0xFF0F6E56)
-                              : Colors.grey,
+                              ? Colors.white
+                              : AppColors.textSecondary,
                           fontWeight: _selectedFile != null
                               ? FontWeight.bold
                               : FontWeight.normal,
@@ -202,24 +187,11 @@ class _UploadRecordScreenState extends State<UploadRecordScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _upload,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Upload Record',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              DarkButton(
+                label: 'Upload Record',
+                onPressed: _upload,
+                isLoading: _isLoading,
+                icon: Icons.upload_file,
               ),
             ],
           ),
