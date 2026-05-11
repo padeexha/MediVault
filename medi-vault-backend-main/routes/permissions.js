@@ -106,7 +106,7 @@ router.get('/my-doctors', protect, authorise('patient'), async (req, res) => {
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
     const permissions = await AccessPermission.find({ patient_id: patient._id, access_status: 'granted' })
-      .populate({ path: 'provider_id', populate: { path: 'user_id', select: 'first_name last_name email' } });
+      .populate({ path: 'provider_id', populate: { path: 'user_id', select: 'first_name last_name email gender profile_picture' } });
     res.status(200).json({ success: true, permissions });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -121,7 +121,7 @@ router.get('/shared-with-me', protect, authorise('doctor'), async (req, res) => 
     const permissions = await AccessPermission.find({ provider_id: provider._id, access_status: 'granted' })
       .populate({
         path: 'patient_id',
-        populate: { path: 'user_id', select: 'first_name last_name email' },
+        populate: { path: 'user_id', select: 'first_name last_name email gender profile_picture' },
       });
 
     const result = await Promise.all(permissions.map(async (perm) => {
@@ -140,6 +140,8 @@ router.get('/shared-with-me', protect, authorise('doctor'), async (req, res) => 
           _id: perm.patient_id._id,
           name: patientName,
           email: patientUser?.email || '',
+          gender: patientUser?.gender || null,
+          profile_picture: patientUser?.profile_picture || null,
         },
         records,
       };

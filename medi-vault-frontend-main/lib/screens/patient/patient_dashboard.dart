@@ -11,6 +11,7 @@ import 'record_list_screen.dart';
 import 'permissions_screen.dart';
 import 'audit_log_screen.dart';
 import 'search_screen.dart';
+import 'doctor_selection_screen.dart';
 
 class PatientDashboard extends StatefulWidget {
   const PatientDashboard({super.key});
@@ -75,13 +76,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
         title: 'MediVault',
         showLogo: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SearchScreen()),
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () async {
@@ -284,6 +278,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
       _ActionItem(Icons.history, 'Audit Log', const Color(0xFF993C1D), () {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const AuditLogScreen()));
+      }),
+      _ActionItem(Icons.person_search, 'Find Doctor', const Color(0xFF0A6E78), () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const DoctorSelectionScreen()));
       }),
     ];
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AppColors {
   static const Color bg = Color(0xFF050C18);
@@ -487,6 +488,58 @@ class DarkListCard extends StatelessWidget {
             )
           : child,
     );
+  }
+}
+
+// Profile avatar: shows network image or gender-based local asset fallback
+class ProfileAvatar extends StatelessWidget {
+  final String? profilePicture;
+  final String? gender;
+  final String role; // 'patient' | 'doctor'
+  final double radius;
+
+  const ProfileAvatar({
+    super.key,
+    this.profilePicture,
+    this.gender,
+    required this.role,
+    this.radius = 24,
+  });
+
+  String get _fallbackAsset {
+    final isFemale = gender?.toLowerCase() == 'female';
+    if (role == 'doctor') {
+      return isFemale
+          ? 'assets/images/female_doctor.png'
+          : 'assets/images/male_doctor.png';
+    }
+    return isFemale
+        ? 'assets/images/female_user.png'
+        : 'assets/images/male_user.png';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = radius * 2;
+    final url = profilePicture;
+
+    Widget inner;
+    if (url != null && url.isNotEmpty) {
+      inner = CachedNetworkImage(
+        imageUrl: url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        placeholder: (_, url2) =>
+            Image.asset(_fallbackAsset, fit: BoxFit.cover),
+        errorWidget: (_, url2, err) =>
+            Image.asset(_fallbackAsset, fit: BoxFit.cover),
+      );
+    } else {
+      inner = Image.asset(_fallbackAsset, fit: BoxFit.cover);
+    }
+
+    return ClipOval(child: SizedBox(width: size, height: size, child: inner));
   }
 }
 

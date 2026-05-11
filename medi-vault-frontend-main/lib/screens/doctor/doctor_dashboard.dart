@@ -16,6 +16,10 @@ class DoctorDashboard extends StatefulWidget {
 
 class _DoctorDashboardState extends State<DoctorDashboard> {
   String _doctorName = '';
+  String _specialization = '';
+  String _organisation = '';
+  String? _gender;
+  String? _profilePicture;
   int _totalPatients = 0;
   int _totalRecords = 0;
   bool _isLoading = true;
@@ -30,9 +34,32 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     final user = await ApiService.getUser();
     if (user != null) setState(() => _doctorName = user['name'] ?? '');
 
-    final response = await ApiService.get(Constants.sharedWithMe);
-    if (response['success'] == true) {
-      final data = response['data'] as List;
+    final results = await Future.wait([
+      ApiService.get(Constants.getProfile),
+      ApiService.get(Constants.sharedWithMe),
+    ]);
+
+    if (!mounted) return;
+
+    final profile = results[0];
+    if (profile['success'] == true) {
+      final p = profile['profile'] as Map<String, dynamic>;
+      final fn = (p['first_name'] as String? ?? '').trim();
+      final ln = (p['last_name'] as String? ?? '').trim();
+      setState(() {
+        if (fn.isNotEmpty || ln.isNotEmpty) {
+          _doctorName = '$fn $ln'.trim();
+        }
+        _specialization = (p['specialization'] as String? ?? '').trim();
+        _organisation  = (p['organisation_name'] as String? ?? '').trim();
+        _gender        = p['gender'] as String?;
+        _profilePicture = p['profile_picture'] as String?;
+      });
+    }
+
+    final shared = results[1];
+    if (shared['success'] == true) {
+      final data = shared['data'] as List;
       int total = 0;
       for (final item in data) {
         total += (item['records'] as List).length;
@@ -149,6 +176,39 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  if (_specialization.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.medical_services_outlined,
+                            size: 13, color: AppColors.accent),
+                        const SizedBox(width: 5),
+                        Text(
+                          _specialization,
+                          style: const TextStyle(
+                              color: AppColors.accent, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (_organisation.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        const Icon(Icons.local_hospital_outlined,
+                            size: 13, color: AppColors.textSecondary),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            _organisation,
+                            style: const TextStyle(
+                                color: AppColors.textSecondary, fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   Row(
                     children: [
@@ -160,14 +220,11 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.accentBlue.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(Icons.medical_services_outlined,
-                  color: AppColors.accent, size: 32),
+            ProfileAvatar(
+              profilePicture: _profilePicture,
+              gender: _gender,
+              role: 'doctor',
+              radius: 31,
             ),
           ],
         ),

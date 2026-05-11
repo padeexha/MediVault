@@ -13,6 +13,7 @@ class Constants {
   static const String resendOtp = '$baseUrl/auth/resend-otp';
   static const String getProfile = '$baseUrl/auth/profile';
   static const String updateProfile = '$baseUrl/auth/profile';
+  static const String updateProfilePicture = '$baseUrl/auth/profile/picture';
 
   static const String records = '$baseUrl/records';
   static const String uploadRecord = '$baseUrl/records/upload';

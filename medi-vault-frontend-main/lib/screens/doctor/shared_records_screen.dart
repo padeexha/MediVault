@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_theme.dart';
@@ -14,6 +15,7 @@ class SharedRecordsScreen extends StatefulWidget {
 class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
   List<Map<String, dynamic>> _patientData = [];
   bool _isLoading = true;
+  String? _openingRecordId;
 
   @override
   void initState() {
@@ -24,6 +26,7 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
   Future<void> _loadSharedRecords() async {
     setState(() => _isLoading = true);
     final response = await ApiService.get(Constants.sharedWithMe);
+    if (!mounted) return;
     if (response['success'] == true) {
       setState(() {
         _patientData = List<Map<String, dynamic>>.from(response['data']);
@@ -34,32 +37,67 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
     }
   }
 
+  Future<void> _openRecord(RecordModel record) async {
+    setState(() => _openingRecordId = record.id);
+    try {
+      final res = await ApiService.post(
+          '${Constants.records}/${record.id}/download', {});
+      if (!mounted) return;
+
+      final rawUrl = (res['success'] == true
+              ? res['download_url'] as String?
+              : null) ??
+          record.filePath;
+
+      if (rawUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('File URL not available')),
+        );
+        return;
+      }
+
+      final uri = Uri.parse(rawUrl);
+      final launched =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Could not open file — no app found for this type')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _openingRecordId = null);
+    }
+  }
+
   Color _categoryColor(String cat) {
     switch (cat) {
-      case 'lab_report': return const Color(0xFF185FA5);
-      case 'prescription': return const Color(0xFF1D9E75);
-      case 'radiology': return const Color(0xFF854F0B);
-      case 'discharge_summary': return const Color(0xFF993C1D);
-      default: return AppColors.textSecondary;
+      case 'lab_report':
+        return const Color(0xFF185FA5);
+      case 'prescription':
+        return const Color(0xFF1D9E75);
+      case 'radiology':
+        return const Color(0xFF854F0B);
+      case 'discharge_summary':
+        return const Color(0xFF993C1D);
+      default:
+        return AppColors.textSecondary;
     }
   }
 
   IconData _categoryIcon(String cat) {
     switch (cat) {
-      case 'lab_report': return Icons.science;
-      case 'prescription': return Icons.medication;
-      case 'radiology': return Icons.image_search;
-      case 'discharge_summary': return Icons.assignment;
-      default: return Icons.description;
+      case 'lab_report':
+        return Icons.science;
+      case 'prescription':
+        return Icons.medication;
+      case 'radiology':
+        return Icons.image_search;
+      case 'discharge_summary':
+        return Icons.assignment;
+      default:
+        return Icons.description;
     }
-  }
-
-  Future<void> _logDownload(String recordId, String title) async {
-    await ApiService.post('${Constants.records}/$recordId/download', {});
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Download logged for: $title')),
-    );
   }
 
   @override
@@ -82,6 +120,11 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
                       const Text('No records shared with you yet',
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      const Text(
+                          'Patients must grant you access from their app',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 13)),
                     ],
                   ),
                 )
@@ -90,101 +133,177 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
                   backgroundColor: AppColors.bgCard,
                   onRefresh: _loadSharedRecords,
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                     itemCount: _patientData.length,
                     itemBuilder: (_, i) {
                       final item = _patientData[i];
-                      final patient = item['patient'];
+                      final patient =
+                          item['patient'] as Map<String, dynamic>;
                       final records = (item['records'] as List)
                           .map((r) => RecordModel.fromJson(r))
                           .toList();
+                      final patientName =
+                          (patient['name'] as String?)?.trim().isNotEmpty == true
+                              ? patient['name'] as String
+                              : 'Unknown Patient';
+                      final patientEmail =
+                          (patient['email'] as String?) ?? '';
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(top: 8, bottom: 10),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ── Patient header card ──
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.accentBlue
+                                    .withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
                                     color: AppColors.accentBlue
-                                        .withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(8),
+                                        .withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Patient avatar
+                                  ProfileAvatar(
+                                    profilePicture: patient['profile_picture'] as String?,
+                                    gender: patient['gender'] as String?,
+                                    role: 'patient',
+                                    radius: 23,
                                   ),
-                                  child: const Icon(Icons.person,
-                                      size: 14,
-                                      color: AppColors.accentBlue),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Patient: ${patient['_id'].toString().substring(0, 8)}...',
-                                  style: const TextStyle(
-                                    color: AppColors.accentBlue,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          patientName,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        if (patientEmail.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            patientEmail,
+                                            style: const TextStyle(
+                                                color:
+                                                    AppColors.textSecondary,
+                                                fontSize: 12),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.accentBlue
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accentBlue
+                                          .withValues(alpha: 0.2),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${records.length} record${records.length == 1 ? '' : 's'}',
+                                      style: const TextStyle(
+                                          color: AppColors.accentBlue,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                  child: Text(
-                                    '${records.length} records',
-                                    style: const TextStyle(
-                                        color: AppColors.accentBlue,
-                                        fontSize: 11),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          ...records.map((record) {
-                            final color = _categoryColor(record.category);
-                            return DarkListCard(
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(12),
-                                leading: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.18),
-                                    borderRadius: BorderRadius.circular(8),
+                            const SizedBox(height: 8),
+
+                            // ── Record cards ──
+                            ...records.map((record) {
+                              final color = _categoryColor(record.category);
+                              final isOpening =
+                                  _openingRecordId == record.id;
+                              return DarkListCard(
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: color.withValues(alpha: 0.18),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                        _categoryIcon(record.category),
+                                        color: color,
+                                        size: 20),
                                   ),
-                                  child: Icon(
-                                      _categoryIcon(record.category),
-                                      color: color,
-                                      size: 20),
-                                ),
-                                title: Text(record.title,
+                                  title: Text(
+                                    record.title,
                                     style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 14)),
-                                subtitle: Text(
-                                  '${record.categoryDisplay} · ${record.uploadDate.day}/${record.uploadDate.month}/${record.uploadDate.year}',
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12),
+                                        fontSize: 14),
+                                  ),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 7, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                color.withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            record.categoryDisplay,
+                                            style: TextStyle(
+                                                color: color, fontSize: 10),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '${record.uploadDate.day}/${record.uploadDate.month}/${record.uploadDate.year}',
+                                          style: const TextStyle(
+                                              color: AppColors.textSecondary,
+                                              fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  trailing: isOpening
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.accent),
+                                        )
+                                      : IconButton(
+                                          icon: const Icon(
+                                              Icons.open_in_new,
+                                              color: AppColors.accent),
+                                          tooltip: 'Open / Download',
+                                          onPressed: _openingRecordId !=
+                                                  null
+                                              ? null
+                                              : () => _openRecord(record),
+                                        ),
                                 ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.download_outlined,
-                                      color: AppColors.accent),
-                                  onPressed: () =>
-                                      _logDownload(record.id, record.title),
-                                ),
-                              ),
-                            );
-                          }),
-                          Divider(
-                              color: Colors.white.withValues(alpha: 0.07)),
-                        ],
+                              );
+                            }),
+                          ],
+                        ),
                       );
                     },
                   ),
