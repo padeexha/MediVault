@@ -73,6 +73,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       extendBodyBehindAppBar: true,
       appBar: darkGlassAppBar(
         title: 'MediVault',
+        showLogo: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

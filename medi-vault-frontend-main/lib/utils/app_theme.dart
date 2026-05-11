@@ -408,90 +408,12 @@ class MediVaultLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 48 * scale,
-          height: 64 * scale,
-          child: CustomPaint(painter: _EcgPainter()),
-        ),
-        SizedBox(width: 4 * scale),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'MEDI',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24 * scale,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-              ),
-            ),
-            Container(
-              width: 90 * scale,
-              height: 1.5,
-              color: AppColors.medRed,
-              margin: EdgeInsets.symmetric(vertical: 1 * scale),
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'VAULT',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24 * scale,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-                SizedBox(width: 4 * scale),
-                Container(
-                  width: 18 * scale,
-                  height: 18 * scale,
-                  decoration: const BoxDecoration(
-                    color: AppColors.medRed,
-                    shape: BoxShape.rectangle,
-                  ),
-                  child: Icon(Icons.add, color: Colors.white, size: 14 * scale),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+    return Image.asset(
+      'assets/images/MediVault Logo.png',
+      height: 70 * scale,
+      fit: BoxFit.contain,
     );
   }
-}
-
-class _EcgPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.ecgGreen
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final mid = size.height * 0.5;
-    final path = Path()
-      ..moveTo(0, mid)
-      ..lineTo(size.width * 0.18, mid)
-      ..lineTo(size.width * 0.3, mid - size.height * 0.28)
-      ..lineTo(size.width * 0.45, mid + size.height * 0.32)
-      ..lineTo(size.width * 0.6, mid)
-      ..lineTo(size.width, mid);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }
 
 // Glass AppBar for inner screens
@@ -499,14 +421,22 @@ AppBar darkGlassAppBar({
   required String title,
   List<Widget>? actions,
   bool implyLeading = true,
+  bool showLogo = false,
 }) {
   return AppBar(
     backgroundColor: Colors.transparent,
     elevation: 0,
-    title: Text(
-      title,
-      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-    ),
+    title: showLogo
+        ? Image.asset(
+            'assets/images/MediVault Logo.png',
+            height: 36,
+            fit: BoxFit.contain,
+          )
+        : Text(
+            title,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
     iconTheme: const IconThemeData(color: Colors.white),
     actionsIconTheme: const IconThemeData(color: Colors.white),
     actions: actions,

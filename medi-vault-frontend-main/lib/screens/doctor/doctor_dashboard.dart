@@ -66,6 +66,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       extendBodyBehindAppBar: true,
       appBar: darkGlassAppBar(
         title: 'MediVault',
+        showLogo: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),

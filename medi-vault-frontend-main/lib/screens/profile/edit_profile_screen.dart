@@ -16,6 +16,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _lastNameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
+  final _dobCtrl = TextEditingController();
   final _specializationCtrl = TextEditingController();
   final _organisationCtrl = TextEditingController();
 
@@ -40,32 +41,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _lastNameCtrl.dispose();
     _phoneCtrl.dispose();
     _addressCtrl.dispose();
+    _dobCtrl.dispose();
     _specializationCtrl.dispose();
     _organisationCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _loadProfile() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     final response = await ApiService.get(Constants.getProfile);
     if (!mounted) return;
+
     if (response['success'] == true) {
       final p = response['profile'] as Map<String, dynamic>;
       _role = p['role'] ?? '';
       _firstNameCtrl.text = p['first_name'] ?? '';
       _lastNameCtrl.text = p['last_name'] ?? '';
       _phoneCtrl.text = p['phone_number'] ?? '';
+
       if (_role == 'patient') {
         _addressCtrl.text = p['address'] ?? '';
-        _gender = (p['gender'] as String?)?.isNotEmpty == true
-            ? p['gender']
-            : null;
+        final rawGender = p['gender'] as String? ?? '';
+        _gender = rawGender.isNotEmpty ? rawGender : null;
         if (p['date_of_birth'] != null) {
-          _dateOfBirth = DateTime.tryParse(p['date_of_birth'].toString());
+          final dob = DateTime.tryParse(p['date_of_birth'].toString());
+          if (dob != null) {
+            _dateOfBirth = dob;
+            _dobCtrl.text =
+                '${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}';
+          }
         }
       } else if (_role == 'doctor') {
         _specializationCtrl.text = p['specialization'] ?? '';
         _organisationCtrl.text = p['organisation_name'] ?? '';
       }
+
       setState(() => _isLoading = false);
     } else {
       setState(() {
@@ -84,6 +98,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'last_name': _lastNameCtrl.text.trim(),
       'phone_number': _phoneCtrl.text.trim(),
     };
+
     if (_role == 'patient') {
       if (_dateOfBirth != null) {
         body['date_of_birth'] = _dateOfBirth!.toIso8601String();
@@ -102,7 +117,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (response['success'] == true) {
       final user = await ApiService.getUser();
       if (user != null) {
-        user['name'] = '${body['first_name']} ${body['last_name']}';
+        user['name'] =
+            '${body['first_name']} ${body['last_name']}';
         await ApiService.saveUser(user);
       }
       if (!mounted) return;
@@ -113,8 +129,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text(response['message'] ?? 'Failed to update profile')),
+            content: Text(
+                response['message'] ?? 'Failed to update profile')),
       );
     }
   }
@@ -126,7 +142,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    if (picked != null) setState(() => _dateOfBirth = picked);
+    if (picked != null) {
+      setState(() {
+        _dateOfBirth = picked;
+        _dobCtrl.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      });
+    }
   }
 
   @override
@@ -139,10 +161,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: CircularProgressIndicator(color: AppColors.accent))
           : _error != null
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(_error!,
-                        style: const TextStyle(color: AppColors.errorRed)),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          color: AppColors.errorRed, size: 48),
+                      const SizedBox(height: 16),
+                      Text(_error!,
+                          style: const TextStyle(color: AppColors.errorRed),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 24),
+                      TextButton(
+                        onPressed: _loadProfile,
+                        child: const Text('Try again',
+                            style: TextStyle(color: AppColors.accent)),
+                      ),
+                    ],
                   ),
                 )
               : SingleChildScrollView(
@@ -169,23 +203,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             keyboardType: TextInputType.phone),
                         if (_role == 'patient') ...[
                           const SizedBox(height: 24),
-                          _sectionHeader(Icons.medical_information_outlined,
+                          _sectionHeader(
+                              Icons.medical_information_outlined,
                               'Health Information'),
                           const SizedBox(height: 12),
+                          // Date of Birth with stored controller
                           GestureDetector(
                             onTap: _pickDate,
                             child: AbsorbPointer(
                               child: _field(
-                                TextEditingController(
-                                  text: _dateOfBirth == null
-                                      ? ''
-                                      : '${_dateOfBirth!.year}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}',
-                                ),
+                                _dobCtrl,
                                 'Date of Birth',
                                 suffix: const Icon(
-                                    Icons.calendar_today_outlined,
-                                    size: 18,
-                                    color: AppColors.textSecondary),
+                                  Icons.calendar_today_outlined,
+                                  size: 18,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ),
                           ),
@@ -201,7 +234,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 child: Text(_capitalize(g)),
                               );
                             }).toList(),
-                            onChanged: (v) => setState(() => _gender = v),
+                            onChanged: (v) =>
+                                setState(() => _gender = v),
                           ),
                           const SizedBox(height: 12),
                           _field(_addressCtrl, 'Address', maxLines: 2),
@@ -212,14 +246,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               'Professional Credentials'),
                           const SizedBox(height: 12),
                           _field(_specializationCtrl, 'Specialization',
-                              validator: (v) => v == null || v.trim().isEmpty
-                                  ? 'Specialization is required'
-                                  : null),
+                              validator: (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Specialization is required'
+                                      : null),
                           const SizedBox(height: 12),
-                          _field(_organisationCtrl, 'Organisation / Hospital',
-                              validator: (v) => v == null || v.trim().isEmpty
-                                  ? 'Organisation name is required'
-                                  : null),
+                          _field(_organizationCtrl,
+                              'Organisation / Hospital',
+                              validator: (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Organisation name is required'
+                                      : null),
                         ],
                         const SizedBox(height: 32),
                         DarkButton(
@@ -227,12 +264,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           onPressed: _save,
                           isLoading: _isSaving,
                         ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
     );
   }
+
+  // alias so the reference in the doctor block compiles
+  TextEditingController get _organizationCtrl => _organisationCtrl;
 
   Widget _sectionHeader(IconData icon, String title) {
     return Row(

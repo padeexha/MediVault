@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/google_auth_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_theme.dart';
+import '../patient/patient_dashboard.dart';
+import '../doctor/doctor_dashboard.dart';
+import 'otp_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _specializationController = TextEditingController();
   final _organisationController = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   String _selectedRole = 'patient';
 
@@ -59,31 +64,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (!mounted) return;
+
     if (response['success'] == true) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Check your email'),
-          content: const Text(
-            'We sent a verification link to your email address. Please verify before logging in.',
+      if (response['requiresOtp'] == true) {
+        final email = response['email'] ?? _emailController.text.trim();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OtpScreen(email: email, role: _selectedRole),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text('Go to Login',
-                  style: TextStyle(color: AppColors.accentBlue)),
-            ),
-          ],
-        ),
-      );
+        );
+      } else {
+        // Auto-verified (no email service configured) — go straight to dashboard
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Registration successful')),
+        );
+        Navigator.pop(context);
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(response['message'] ?? 'Registration failed')),
+      );
+    }
+  }
+
+  Future<void> _googleSignIn() async {
+    setState(() => _isGoogleLoading = true);
+    final response = await GoogleAuthService.signIn(role: _selectedRole);
+    setState(() => _isGoogleLoading = false);
+    if (!mounted) return;
+
+    if (response['success'] == true) {
+      final role = response['user']['role'];
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              role == 'doctor' ? const DoctorDashboard() : const PatientDashboard(),
+        ),
+        (_) => false,
+      );
+    } else if (response['message'] != 'Sign-in cancelled') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response['message'] ?? 'Google sign-in failed')),
       );
     }
   }
@@ -276,6 +300,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             isLoading: _isLoading,
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  thickness: 1),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                'or',
+                                style: TextStyle(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.45),
+                                    fontSize: 13),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  thickness: 1),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: _GoogleButton(
+                            onPressed: _googleSignIn,
+                            isLoading: _isGoogleLoading,
+                            role: _selectedRole,
+                          ),
+                        ),
                         const SizedBox(height: 18),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -307,6 +367,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GoogleButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final String role;
+
+  const _GoogleButton({
+    required this.onPressed,
+    required this.role,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      borderRadius: 26,
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: isLoading ? null : onPressed,
+        borderRadius: BorderRadius.circular(26),
+        child: Container(
+          height: 52,
+          alignment: Alignment.center,
+          child: isLoading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'G',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Continue with Google as ${role == 'doctor' ? 'Doctor' : 'Patient'}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
