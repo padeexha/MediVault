@@ -409,7 +409,7 @@ class MediVaultLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-      'assets/images/MediVault Logo.png',
+      'assets/images/logo.png',
       height: 70 * scale,
       fit: BoxFit.contain,
     );
@@ -428,7 +428,7 @@ AppBar darkGlassAppBar({
     elevation: 0,
     title: showLogo
         ? Image.asset(
-            'assets/images/MediVault Logo.png',
+            'assets/images/logo.png',
             height: 36,
             fit: BoxFit.contain,
           )

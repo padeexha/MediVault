@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_service.dart';
-import '../../services/google_auth_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_theme.dart';
 import '../patient/patient_dashboard.dart';
@@ -22,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
 
   @override
@@ -76,29 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _googleSignIn() async {
-    setState(() => _isGoogleLoading = true);
-    final response = await GoogleAuthService.signIn(role: 'patient');
-    setState(() => _isGoogleLoading = false);
-    if (!mounted) return;
-
-    if (response['success'] == true) {
-      final role = response['user']['role'];
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              role == 'doctor' ? const DoctorDashboard() : const PatientDashboard(),
-        ),
-        (_) => false,
-      );
-    } else if (response['message'] != 'Sign-in cancelled') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message'] ?? 'Google sign-in failed')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,7 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: Column(
                 children: [
                   const MediVaultLogo(scale: 0.9),
@@ -164,8 +140,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white.withValues(alpha: 0.55),
                                 size: 20,
                               ),
-                              onPressed: () => setState(
-                                  () => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(() =>
+                                  _obscurePassword = !_obscurePassword),
                             ),
                             validator: (v) {
                               if (v == null || v.isEmpty) {
@@ -204,41 +180,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               isLoading: _isLoading,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    thickness: 1),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'or',
-                                  style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.45),
-                                      fontSize: 13),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    thickness: 1),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: _GoogleButton(
-                              onPressed: _googleSignIn,
-                              isLoading: _isGoogleLoading,
-                            ),
-                          ),
                           const SizedBox(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -275,67 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GoogleButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final bool isLoading;
-
-  const _GoogleButton({required this.onPressed, this.isLoading = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      borderRadius: 26,
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: isLoading ? null : onPressed,
-        borderRadius: BorderRadius.circular(26),
-        child: Container(
-          height: 52,
-          alignment: Alignment.center,
-          child: isLoading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'G',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Continue with Google',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
         ),
       ),
     );
