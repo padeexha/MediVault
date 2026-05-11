@@ -1,7 +1,7 @@
 class Constants {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://medi-vault-backend-28w8.onrender.com/api',
+    defaultValue: 'https://medivault-ejaa.onrender.com/api',
   );
 
   static const String registerPatient = '$baseUrl/auth/register/patient';
@@ -9,7 +9,6 @@ class Constants {
   static const String login = '$baseUrl/auth/login';
   static const String logout = '$baseUrl/auth/logout';
   static const String forgotPassword = '$baseUrl/auth/forgot-password';
-  static const String googleAuth = '$baseUrl/auth/google';
   static const String verifyOtp = '$baseUrl/auth/verify-otp';
   static const String resendOtp = '$baseUrl/auth/resend-otp';
   static const String getProfile = '$baseUrl/auth/profile';
