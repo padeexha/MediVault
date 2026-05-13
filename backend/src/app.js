@@ -78,7 +78,7 @@ app.get('/reset-password/:token', (req, res) => {
             const data = await response.json();
             if (data.success) {
               message.style.color='#0F6E56';
-              message.textContent='Password reset successfully. You can now log in.';
+              message.textContent='Password has been changed successfully.';
               document.getElementById('resetForm').style.display='none';
             } else {
               message.style.color='red';

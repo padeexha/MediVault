@@ -136,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         onTap: () => setState(() => _selectedGender = gender),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.accentBlue.withValues(alpha: 0.3)
@@ -151,17 +151,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon,
                   color: selected ? Colors.white : AppColors.textSecondary,
-                  size: 22),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected ? Colors.white : AppColors.textSecondary,
-                  fontWeight:
-                      selected ? FontWeight.bold : FontWeight.normal,
+                  size: 20),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: selected ? Colors.white : AppColors.textSecondary,
+                    fontWeight:
+                        selected ? FontWeight.bold : FontWeight.normal,
+                  ),
                 ),
               ),
             ],
@@ -312,6 +317,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             _genderButton('male', 'Male', Icons.male),
                             const SizedBox(width: 12),
                             _genderButton('female', 'Female', Icons.female),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            _genderButton('other', 'Other', Icons.person_outline),
+                            const SizedBox(width: 12),
+                            _genderButton('prefer_not_to_say', 'Prefer not to say', Icons.shield_outlined),
                           ],
                         ),
                         if (_selectedRole == 'doctor') ...[

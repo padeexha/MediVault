@@ -100,6 +100,37 @@ router.put('/revoke/:permissionId', protect, authorise('patient'), async (req, r
   }
 });
 
+// Update permission scope (full ↔ category)
+router.put('/:permissionId', protect, authorise('patient'), async (req, res) => {
+  try {
+    const permission = await AccessPermission.findById(req.params.permissionId);
+    if (!permission) return res.status(404).json({ success: false, message: 'Permission not found' });
+
+    const patient = await Patient.findOne({ user_id: req.user._id });
+    if (!patient || !permission.patient_id.equals(patient._id)) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const { scope_type, shared_category } = req.body;
+    if (scope_type) permission.scope_type = scope_type;
+    permission.shared_category = scope_type === 'category' ? (shared_category || null) : null;
+    await permission.save();
+
+    await logAudit({
+      patientId:    patient._id,
+      actorUserId:  req.user._id,
+      permissionId: permission._id,
+      actionType:   'permission_updated',
+      details:      `Updated permission scope to: ${permission.scope_type}`,
+      ip:           req.ip,
+    });
+
+    res.status(200).json({ success: true, permission });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // List doctors with access (patient view)
 router.get('/my-doctors', protect, authorise('patient'), async (req, res) => {
   try {

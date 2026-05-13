@@ -140,30 +140,334 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => _DoctorDetailSheet(
-          doctorName: doctorName,
-          email: email,
-          specialization: specialization,
-          organisation: organisation,
-          profilePicture: profilePicture,
-          gender: gender,
-          selectedScope: selectedScope,
-          selectedCategory: selectedCategory,
-          isSaving: isSaving,
-          categories: _categories,
-          onScopeChanged: (v) => setSheet(() => selectedScope = v),
-          onCategoryChanged: (v) => setSheet(() => selectedCategory = v),
-          onSave: () async {
-            setSheet(() => isSaving = true);
-            await _updatePermission(permissionId, selectedScope,
-                selectedScope == 'category' ? selectedCategory : null);
-            if (ctx.mounted) Navigator.pop(ctx);
-          },
-          onRevoke: () async {
-            Navigator.pop(ctx);
-            await _revokeAccess(permissionId, doctorName);
-          },
-        ),
+        builder: (ctx, setSheet) {
+          return ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard.withValues(alpha: 0.95),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(28)),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08), width: 1),
+                ),
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 16,
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Handle bar
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Doctor profile header
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.accentBlue.withValues(alpha: 0.15),
+                              AppColors.accent.withValues(alpha: 0.08),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color:
+                                  AppColors.accentBlue.withValues(alpha: 0.25)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.accentBlue,
+                                    AppColors.accent
+                                  ],
+                                ),
+                              ),
+                              child: ProfileAvatar(
+                                profilePicture: profilePicture,
+                                gender: gender,
+                                role: 'doctor',
+                                radius: 34,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(doctorName,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold)),
+                                  if (specialization.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Row(children: [
+                                      const Icon(
+                                          Icons.medical_services_outlined,
+                                          size: 12,
+                                          color: AppColors.accent),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                          child: Text(specialization,
+                                              style: const TextStyle(
+                                                  color: AppColors.accent,
+                                                  fontSize: 13),
+                                              overflow: TextOverflow.ellipsis)),
+                                    ]),
+                                  ],
+                                  if (organisation.isNotEmpty) ...[
+                                    const SizedBox(height: 3),
+                                    Row(children: [
+                                      const Icon(Icons.local_hospital_outlined,
+                                          size: 12,
+                                          color: AppColors.textSecondary),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                          child: Text(organisation,
+                                              style: const TextStyle(
+                                                  color: AppColors.textSecondary,
+                                                  fontSize: 12),
+                                              overflow: TextOverflow.ellipsis)),
+                                    ]),
+                                  ],
+                                  if (email.isNotEmpty) ...[
+                                    const SizedBox(height: 3),
+                                    Row(children: [
+                                      const Icon(Icons.email_outlined,
+                                          size: 12,
+                                          color: AppColors.textSecondary),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                          child: Text(email,
+                                              style: const TextStyle(
+                                                  color: AppColors.textSecondary,
+                                                  fontSize: 12),
+                                              overflow: TextOverflow.ellipsis)),
+                                    ]),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Section title
+                      Row(
+                        children: [
+                          Container(
+                            width: 3,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [AppColors.accentBlue, AppColors.accent],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text('Access Permissions',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Scope radio buttons — inline in StatefulBuilder so state updates correctly
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.bgSurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.08)),
+                        ),
+                        child: RadioGroup<String>(
+                          groupValue: selectedScope,
+                          onChanged: (v) =>
+                              setSheet(() => selectedScope = v!),
+                          child: Column(
+                            children: [
+                              const RadioListTile<String>(
+                                value: 'all',
+                                activeColor: AppColors.accentBlue,
+                                title: Text('All records',
+                                    style: TextStyle(color: Colors.white)),
+                                subtitle: Text('Doctor can see all records',
+                                    style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12)),
+                              ),
+                              Divider(
+                                  height: 1,
+                                  color: Colors.white.withValues(alpha: 0.08)),
+                              const RadioListTile<String>(
+                                value: 'category',
+                                activeColor: AppColors.accentBlue,
+                                title: Text('By category',
+                                    style: TextStyle(color: Colors.white)),
+                                subtitle: Text(
+                                    'Doctor sees only a specific category',
+                                    style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      if (selectedScope == 'category') ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.bgSurface,
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: const Color(0xFF1E2D40)),
+                          ),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 14),
+                          child: DropdownButton<String>(
+                            value: selectedCategory,
+                            isExpanded: true,
+                            dropdownColor: AppColors.bgCard,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
+                            underline: const SizedBox.shrink(),
+                            icon: const Icon(Icons.keyboard_arrow_down,
+                                color: AppColors.textSecondary),
+                            items: _categories
+                                .map((c) => DropdownMenuItem<String>(
+                                      value: c['value'],
+                                      child: Text(c['label']!),
+                                    ))
+                                .toList(),
+                            onChanged: (v) {
+                              if (v != null) {
+                                setSheet(() => selectedCategory = v);
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+
+                      // Save button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: isSaving
+                              ? null
+                              : () async {
+                                  setSheet(() => isSaving = true);
+                                  await _updatePermission(
+                                      permissionId,
+                                      selectedScope,
+                                      selectedScope == 'category'
+                                          ? selectedCategory
+                                          : null);
+                                  if (ctx.mounted) {
+                                    setSheet(() => isSaving = false);
+                                    Navigator.pop(ctx);
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: isSaving
+                                  ? null
+                                  : const LinearGradient(colors: [
+                                      AppColors.accentBlue,
+                                      AppColors.accent,
+                                    ]),
+                              color: isSaving ? AppColors.bgSurface : null,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: isSaving
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white, strokeWidth: 2),
+                                    )
+                                  : const Text('Save Changes',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Revoke button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            Navigator.pop(ctx);
+                            await _revokeAccess(permissionId, doctorName);
+                          },
+                          icon: const Icon(Icons.remove_circle_outline,
+                              color: Colors.redAccent, size: 18),
+                          label: const Text('Revoke Access',
+                              style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                                color:
+                                    Colors.redAccent.withValues(alpha: 0.5)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -564,373 +868,6 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: const Icon(Icons.add, color: Colors.white),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Doctor detail bottom sheet ─────────────────────────────────────────────
-
-class _DoctorDetailSheet extends StatelessWidget {
-  final String doctorName;
-  final String email;
-  final String specialization;
-  final String organisation;
-  final String? profilePicture;
-  final String? gender;
-  final String selectedScope;
-  final String selectedCategory;
-  final bool isSaving;
-  final List<Map<String, String>> categories;
-  final ValueChanged<String> onScopeChanged;
-  final ValueChanged<String> onCategoryChanged;
-  final VoidCallback onSave;
-  final VoidCallback onRevoke;
-
-  const _DoctorDetailSheet({
-    required this.doctorName,
-    required this.email,
-    required this.specialization,
-    required this.organisation,
-    required this.profilePicture,
-    required this.gender,
-    required this.selectedScope,
-    required this.selectedCategory,
-    required this.isSaving,
-    required this.categories,
-    required this.onScopeChanged,
-    required this.onCategoryChanged,
-    required this.onSave,
-    required this.onRevoke,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.bgCard.withValues(alpha: 0.95),
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.08), width: 1),
-          ),
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 28,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Doctor profile header
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.accentBlue.withValues(alpha: 0.15),
-                        AppColors.accent.withValues(alpha: 0.08),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: AppColors.accentBlue.withValues(alpha: 0.25)),
-                  ),
-                  child: Row(
-                    children: [
-                      // Avatar with gradient ring
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [AppColors.accentBlue, AppColors.accent],
-                          ),
-                        ),
-                        child: ProfileAvatar(
-                          profilePicture: profilePicture,
-                          gender: gender,
-                          role: 'doctor',
-                          radius: 34,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              doctorName,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            if (specialization.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.medical_services_outlined,
-                                      size: 12, color: AppColors.accent),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      specialization,
-                                      style: const TextStyle(
-                                          color: AppColors.accent,
-                                          fontSize: 13),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            if (organisation.isNotEmpty) ...[
-                              const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  const Icon(Icons.local_hospital_outlined,
-                                      size: 12,
-                                      color: AppColors.textSecondary),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      organisation,
-                                      style: const TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            if (email.isNotEmpty) ...[
-                              const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  const Icon(Icons.email_outlined,
-                                      size: 12,
-                                      color: AppColors.textSecondary),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      email,
-                                      style: const TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Section title
-                Row(
-                  children: [
-                    Container(
-                      width: 3,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.accentBlue, AppColors.accent],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Access Permissions',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Scope radio buttons
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08)),
-                  ),
-                  child: RadioGroup<String>(
-                    groupValue: selectedScope,
-                    onChanged: (v) => onScopeChanged(v!),
-                    child: Column(
-                      children: [
-                        RadioListTile<String>(
-                          value: 'all',
-                          activeColor: AppColors.accentBlue,
-                          title: const Text('All records',
-                              style: TextStyle(color: Colors.white)),
-                          subtitle: const Text('Doctor can see all records',
-                              style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12)),
-                        ),
-                        Divider(
-                            height: 1,
-                            color: Colors.white.withValues(alpha: 0.08)),
-                        RadioListTile<String>(
-                          value: 'category',
-                          activeColor: AppColors.accentBlue,
-                          title: const Text('By category',
-                              style: TextStyle(color: Colors.white)),
-                          subtitle: const Text(
-                              'Doctor sees only a specific category',
-                              style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                if (selectedScope == 'category') ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.bgSurface,
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: const Color(0xFF1E2D40)),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: DropdownButton<String>(
-                      value: selectedCategory,
-                      isExpanded: true,
-                      dropdownColor: AppColors.bgCard,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 14),
-                      underline: const SizedBox.shrink(),
-                      icon: const Icon(Icons.keyboard_arrow_down,
-                          color: AppColors.textSecondary),
-                      items: categories
-                          .map((c) => DropdownMenuItem<String>(
-                                value: c['value'],
-                                child: Text(c['label']!),
-                              ))
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) onCategoryChanged(v);
-                      },
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 24),
-
-                // Save button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: isSaving ? null : onSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        gradient: isSaving
-                            ? null
-                            : const LinearGradient(
-                                colors: [
-                                  AppColors.accentBlue,
-                                  AppColors.accent,
-                                ],
-                              ),
-                        color: isSaving
-                            ? AppColors.bgSurface
-                            : null,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Center(
-                        child: isSaving
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2),
-                              )
-                            : const Text(
-                                'Save Changes',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Revoke access button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: onRevoke,
-                    icon: const Icon(Icons.remove_circle_outline,
-                        color: Colors.redAccent, size: 18),
-                    label: const Text(
-                      'Revoke Access',
-                      style: TextStyle(
-                          color: Colors.redAccent,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(
-                          color: Colors.redAccent.withValues(alpha: 0.5)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

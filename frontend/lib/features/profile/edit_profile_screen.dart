@@ -182,6 +182,169 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  void _showChangePasswordSheet() {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    bool obscureCurrent = true;
+    bool obscureNew = true;
+    bool obscureConfirm = true;
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          Future<void> submit() async {
+            final current = currentCtrl.text;
+            final newPass = newCtrl.text;
+            final confirm = confirmCtrl.text;
+            if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(content: Text('Please fill in all fields')),
+              );
+              return;
+            }
+            if (newPass != confirm) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(content: Text('Passwords do not match')),
+              );
+              return;
+            }
+            if (newPass.length < 8) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(content: Text('Password must be at least 8 characters')),
+              );
+              return;
+            }
+            setSheet(() => isSaving = true);
+            final response = await ApiService.put(
+              Constants.changePassword,
+              {'current_password': current, 'new_password': newPass},
+            );
+            if (!ctx.mounted) return;
+            setSheet(() => isSaving = false);
+            if (response['success'] == true) {
+              Navigator.pop(ctx);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Password changed successfully')),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(content: Text(response['message'] ?? 'Failed to change password')),
+              );
+            }
+          }
+
+          return Container(
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.bgCard,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Icon(Icons.lock_outline, color: AppColors.accent, size: 18),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Change Password',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: currentCtrl,
+                  obscureText: obscureCurrent,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: darkInputDecoration(
+                    'Current Password',
+                    suffix: IconButton(
+                      icon: Icon(
+                        obscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.white.withValues(alpha: 0.55),
+                        size: 20,
+                      ),
+                      onPressed: () => setSheet(() => obscureCurrent = !obscureCurrent),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: newCtrl,
+                  obscureText: obscureNew,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: darkInputDecoration(
+                    'New Password',
+                    suffix: IconButton(
+                      icon: Icon(
+                        obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.white.withValues(alpha: 0.55),
+                        size: 20,
+                      ),
+                      onPressed: () => setSheet(() => obscureNew = !obscureNew),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: confirmCtrl,
+                  obscureText: obscureConfirm,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: darkInputDecoration(
+                    'Confirm New Password',
+                    suffix: IconButton(
+                      icon: Icon(
+                        obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.white.withValues(alpha: 0.55),
+                        size: 20,
+                      ),
+                      onPressed: () => setSheet(() => obscureConfirm = !obscureConfirm),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                DarkButton(
+                  label: 'Change Password',
+                  onPressed: submit,
+                  isLoading: isSaving,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -385,6 +548,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           label: 'Save Changes',
                           onPressed: _save,
                           isLoading: _isSaving,
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: OutlinedButton.icon(
+                            onPressed: _showChangePasswordSheet,
+                            icon: const Icon(Icons.lock_outline,
+                                size: 20, color: AppColors.accent),
+                            label: const Text(
+                              'Change Password',
+                              style: TextStyle(
+                                color: AppColors.accent,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                  color: AppColors.accent, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 20),
                       ],

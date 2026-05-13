@@ -25,6 +25,8 @@ class Constants {
   static const String myDoctors       = '$baseUrl/permissions/my-doctors';
   static const String sharedWithMe    = '$baseUrl/permissions/shared-with-me';
 
+  static const String changePassword = '$baseUrl/auth/change-password';
+
   static const String auditLogs = '$baseUrl/audit/my-logs';
 
   // Health Profile
