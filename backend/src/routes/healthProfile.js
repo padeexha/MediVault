@@ -54,51 +54,57 @@ router.post('/save', protect, async (req, res) => {
   }
 });
 
-// ── Doctor: request access to a patient's health profile ────────────────────
-router.post('/request-access', protect, async (req, res) => {
+// ── Doctor: request-access disabled — patients must grant access directly ─────
+router.post('/request-access', protect, async (_req, res) => {
+  return res.status(403).json({
+    success: false,
+    message: 'Doctors cannot request Health Profile access. Patients must grant access directly.',
+  });
+});
+
+// ── Patient: directly grant a doctor access to their health profile ───────────
+router.post('/grant-access', protect, async (req, res) => {
   try {
-    if (req.user.role !== 'doctor')
-      return res.status(403).json({ success: false, message: 'Doctors only' });
+    if (req.user.role !== 'patient')
+      return res.status(403).json({ success: false, message: 'Patients only' });
 
-    const { patient_email } = req.body;
-    if (!patient_email)
-      return res.status(400).json({ success: false, message: 'patient_email is required' });
+    const { doctor_email } = req.body;
+    if (!doctor_email)
+      return res.status(400).json({ success: false, message: 'doctor_email is required' });
 
-    const patientUser = await User.findOne({
-      email: patient_email.toLowerCase().trim(),
-      role: 'patient',
+    const doctorUser = await User.findOne({
+      email: doctor_email.toLowerCase().trim(),
+      role: 'doctor',
     });
-    if (!patientUser)
-      return res.status(404).json({ success: false, message: 'Patient not found' });
+    if (!doctorUser)
+      return res.status(404).json({ success: false, message: 'Doctor not found' });
 
-    const doctorName = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim();
+    const doctorName = `${doctorUser.first_name || ''} ${doctorUser.last_name || ''}`.trim();
 
-    let profile = await HealthProfile.findOne({ patient_id: patientUser._id });
-    if (!profile) profile = new HealthProfile({ patient_id: patientUser._id });
+    let profile = await HealthProfile.findOne({ patient_id: req.user._id });
+    if (!profile) profile = new HealthProfile({ patient_id: req.user._id });
 
     const existing = profile.access_requests.find(
-      r => r.doctor_id.toString() === req.user._id.toString(),
+      r => r.doctor_id.toString() === doctorUser._id.toString(),
     );
 
     if (existing) {
       if (existing.status === 'approved')
-        return res.status(400).json({ success: false, message: 'You already have access to this profile' });
-      if (existing.status === 'pending')
-        return res.status(400).json({ success: false, message: 'Access request is already pending' });
-      existing.status       = 'pending';
-      existing.requested_at = new Date();
-      existing.responded_at = undefined;
+        return res.status(400).json({ success: false, message: 'This doctor already has access to your profile' });
+      existing.status       = 'approved';
+      existing.responded_at = new Date();
     } else {
       profile.access_requests.push({
-        doctor_id:    req.user._id,
+        doctor_id:    doctorUser._id,
         doctor_name:  doctorName,
-        doctor_email: req.user.email,
-        status:       'pending',
+        doctor_email: doctorUser.email,
+        status:       'approved',
+        responded_at: new Date(),
       });
     }
 
     await profile.save();
-    res.json({ success: true, message: 'Access request sent to patient' });
+    res.json({ success: true, message: `Access granted to Dr. ${doctorName}` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

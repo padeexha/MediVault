@@ -188,10 +188,14 @@ const mergeWithDefaults = (dbValues, defaults) => {
 // ─── REGISTER PATIENT ────────────────────────────────────────────────────────
 router.post('/register/patient', async (req, res) => {
   try {
-    await body('first_name').trim().notEmpty().withMessage('First name is required').run(req);
-    await body('last_name').trim().notEmpty().withMessage('Last name is required').run(req);
+    await body('first_name').trim().notEmpty().withMessage('First name is required')
+      .matches(/^[a-zA-Z][a-zA-Z\s'\-]*$/).withMessage('First name can only contain letters, spaces, hyphens, and apostrophes').run(req);
+    await body('last_name').trim().notEmpty().withMessage('Last name is required')
+      .matches(/^[a-zA-Z][a-zA-Z\s'\-]*$/).withMessage('Last name can only contain letters, spaces, hyphens, and apostrophes').run(req);
     await body('email').isEmail().withMessage('Please provide a valid email').run(req);
     await body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters').run(req);
+    await body('phone_number').optional({ checkFalsy: true }).trim()
+      .matches(/^[0-9+\-\s()]*$/).withMessage('Phone number can only contain digits, spaces, +, -, and ()').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ success: false, message: errors.array()[0].msg });
@@ -233,12 +237,16 @@ router.post('/register/patient', async (req, res) => {
 // ─── REGISTER DOCTOR ─────────────────────────────────────────────────────────
 router.post('/register/doctor', async (req, res) => {
   try {
-    await body('first_name').trim().notEmpty().withMessage('First name is required').run(req);
-    await body('last_name').trim().notEmpty().withMessage('Last name is required').run(req);
+    await body('first_name').trim().notEmpty().withMessage('First name is required')
+      .matches(/^[a-zA-Z][a-zA-Z\s'\-]*$/).withMessage('First name can only contain letters, spaces, hyphens, and apostrophes').run(req);
+    await body('last_name').trim().notEmpty().withMessage('Last name is required')
+      .matches(/^[a-zA-Z][a-zA-Z\s'\-]*$/).withMessage('Last name can only contain letters, spaces, hyphens, and apostrophes').run(req);
     await body('email').isEmail().withMessage('Please provide a valid email').run(req);
     await body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters').run(req);
     await body('specialization').trim().notEmpty().withMessage('Specialization is required').run(req);
     await body('organisation_name').trim().notEmpty().withMessage('Organisation name is required').run(req);
+    await body('phone_number').optional({ checkFalsy: true }).trim()
+      .matches(/^[0-9+\-\s()]*$/).withMessage('Phone number can only contain digits, spaces, +, -, and ()').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ success: false, message: errors.array()[0].msg });
@@ -534,6 +542,15 @@ router.get('/profile', protect, async (req, res) => {
 router.put('/profile', protect, async (req, res) => {
   try {
     const { first_name, last_name, phone_number, gender, specialization, organisation_name, date_of_birth, address } = req.body;
+
+    const nameRegex  = /^[a-zA-Z][a-zA-Z\s'\-]*$/;
+    const phoneRegex = /^[0-9+\-\s()]*$/;
+    if (first_name  !== undefined && first_name.trim()  && !nameRegex.test(first_name.trim()))
+      return res.status(400).json({ success: false, message: 'First name can only contain letters, spaces, hyphens, and apostrophes' });
+    if (last_name   !== undefined && last_name.trim()   && !nameRegex.test(last_name.trim()))
+      return res.status(400).json({ success: false, message: 'Last name can only contain letters, spaces, hyphens, and apostrophes' });
+    if (phone_number !== undefined && phone_number.trim() && !phoneRegex.test(phone_number.trim()))
+      return res.status(400).json({ success: false, message: 'Phone number can only contain digits, spaces, +, -, and ()' });
 
     const userSet = {};
     if (first_name     !== undefined) userSet.first_name     = first_name;
