@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { OAuth2Client } = require('google-auth-library');
 const { body, validationResult } = require('express-validator');
 
 const User = require('../models/User');
@@ -11,8 +10,6 @@ const HealthcareProvider = require('../models/HealthcareProvider');
 const AuditLog = require('../models/AuditLog');
 const { protect, authorise } = require('../middleware/auth');
 const bucket = require('../config/firebase');
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const getPatientId = async (userId) => {
   const patient = await Patient.findOne({ user_id: userId });
@@ -44,19 +41,50 @@ const sendOtpEmail = async (user, otp) => {
     sender: { email: 'medivault41@gmail.com', name: 'MediVault' },
     to: [{ email: user.email, name: `${user.first_name} ${user.last_name}` }],
     subject: 'MediVault — Your Verification Code',
-    htmlContent: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#050C18;color:#fff;border-radius:16px;padding:32px;">
-        <h2 style="color:#00C8FF;margin-bottom:8px;">MediVault</h2>
-        <p style="color:#8FA8C8;">Your health records, secured.</p>
-        <hr style="border-color:#1E2D40;margin:24px 0;">
-        <p>Hi <strong>${user.first_name}</strong>,</p>
-        <p>Use the code below to verify your account. It expires in <strong>15 minutes</strong>.</p>
-        <div style="background:#0F1A2E;border:1px solid #1E2D40;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-          <span style="font-size:40px;font-weight:bold;letter-spacing:12px;color:#00C8FF;">${otp}</span>
+    htmlContent: `<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr><td align="center" style="padding:40px 20px;">
+
+    <!-- Logo -->
+    <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td align="center">
+        <div style="width:64px;height:64px;background:#050C18;border-radius:50%;margin:0 auto;text-align:center;line-height:64px;">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
+            <rect x="13" y="4" width="6" height="24" rx="2" fill="#00C8FF"/>
+            <rect x="4" y="13" width="24" height="6" rx="2" fill="#00C8FF"/>
+          </svg>
         </div>
-        <p style="color:#8FA8C8;font-size:13px;">If you did not create an account, ignore this email.</p>
-      </div>
-    `,
+        <div style="margin-top:10px;font-size:20px;font-weight:bold;color:#050C18;letter-spacing:0.5px;">MediVault</div>
+        <div style="font-size:12px;color:#6B7280;margin-top:2px;">Your health records, secured.</div>
+      </td></tr>
+    </table>
+
+    <!-- Card -->
+    <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:520px;">
+      <tr><td style="padding:48px 40px;text-align:center;">
+        <h1 style="margin:0 0 8px;font-size:26px;color:#111827;">Verify Your Account</h1>
+        <p style="margin:0 0 24px;color:#6B7280;font-size:15px;">Hi <strong style="color:#111827;">${user.first_name}</strong>, use the code below to verify your account. It expires in <strong style="color:#111827;">15 minutes</strong>.</p>
+        <div style="background:#f0f4f8;border-radius:12px;padding:28px 24px;margin:0 0 24px;">
+          <span style="font-size:44px;font-weight:bold;letter-spacing:14px;color:#050C18;">${otp}</span>
+        </div>
+        <p style="margin:0;color:#9CA3AF;font-size:13px;">If you did not create a MediVault account, you can safely ignore this email.</p>
+      </td></tr>
+    </table>
+
+    <!-- Footer -->
+    <table cellpadding="0" cellspacing="0" style="margin-top:28px;">
+      <tr><td align="center" style="color:#9CA3AF;font-size:12px;line-height:1.8;">
+        MediVault &mdash; Sri Lanka<br>
+        &copy; 2026 MediVault. All rights reserved.
+      </td></tr>
+    </table>
+
+  </td></tr>
+</table>
+</body>
+</html>`,
   });
   return true;
 };
@@ -74,15 +102,48 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
     sender: { email: 'medivault41@gmail.com', name: 'MediVault' },
     to: [{ email: user.email }],
     subject: 'MediVault — Password Reset',
-    htmlContent: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#050C18;color:#fff;border-radius:16px;padding:32px;">
-        <h2 style="color:#00C8FF;">MediVault</h2>
-        <p>Hi <strong>${user.first_name}</strong>,</p>
-        <p>Click the button below to reset your password. This link is valid for <strong>10 minutes</strong>.</p>
-        <a href="${resetUrl}" style="display:inline-block;padding:14px 28px;background:#3D72E8;color:#fff;text-decoration:none;border-radius:10px;margin:16px 0;font-weight:bold;">Reset Password</a>
-        <p style="color:#8FA8C8;font-size:13px;">If you did not request this, please ignore this email.</p>
-      </div>
-    `,
+    htmlContent: `<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr><td align="center" style="padding:40px 20px;">
+
+    <!-- Logo -->
+    <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td align="center">
+        <div style="width:64px;height:64px;background:#050C18;border-radius:50%;margin:0 auto;text-align:center;line-height:64px;">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
+            <rect x="13" y="4" width="6" height="24" rx="2" fill="#00C8FF"/>
+            <rect x="4" y="13" width="24" height="6" rx="2" fill="#00C8FF"/>
+          </svg>
+        </div>
+        <div style="margin-top:10px;font-size:20px;font-weight:bold;color:#050C18;letter-spacing:0.5px;">MediVault</div>
+        <div style="font-size:12px;color:#6B7280;margin-top:2px;">Your health records, secured.</div>
+      </td></tr>
+    </table>
+
+    <!-- Card -->
+    <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:520px;">
+      <tr><td style="padding:48px 40px;text-align:center;">
+        <h1 style="margin:0 0 8px;font-size:26px;color:#111827;">Password Reset</h1>
+        <p style="margin:0 0 28px;color:#6B7280;font-size:15px;">Hi <strong style="color:#111827;">${user.first_name}</strong>, seems like you forgot your password for MediVault. If this is true, click below to reset your password. This link is valid for <strong style="color:#111827;">10 minutes</strong>.</p>
+        <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#3D72E8;color:#ffffff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:bold;">Reset My Password</a>
+        <p style="margin:28px 0 0;color:#9CA3AF;font-size:13px;">If you did not forget your password, you can safely ignore this email.</p>
+      </td></tr>
+    </table>
+
+    <!-- Footer -->
+    <table cellpadding="0" cellspacing="0" style="margin-top:28px;">
+      <tr><td align="center" style="color:#9CA3AF;font-size:12px;line-height:1.8;">
+        MediVault &mdash; Sri Lanka<br>
+        &copy; 2026 MediVault. All rights reserved.
+      </td></tr>
+    </table>
+
+  </td></tr>
+</table>
+</body>
+</html>`,
   });
   return true;
 };
@@ -147,88 +208,6 @@ const mergeWithDefaults = (dbValues, defaults) => {
   }
   return merged.sort((a, b) => a.localeCompare(b));
 };
-
-// ─── GOOGLE SIGN-IN ──────────────────────────────────────────────────────────
-router.post('/google', async (req, res) => {
-  try {
-    const { id_token, role } = req.body;
-    if (!id_token) return res.status(400).json({ success: false, message: 'Google ID token is required' });
-
-    // Verify the token with Google
-    const ticket = await googleClient.verifyIdToken({
-      idToken: id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    const { sub: googleId, email, given_name, family_name, email_verified } = payload;
-
-    if (!email_verified) {
-      return res.status(400).json({ success: false, message: 'Google account email is not verified' });
-    }
-
-    // Find existing user
-    let user = await User.findOne({ $or: [{ google_id: googleId }, { email }] });
-
-    if (user) {
-      // Link Google ID if not already linked
-      if (!user.google_id) {
-        user.google_id = googleId;
-        user.auth_provider = 'google';
-        user.isVerified = true;
-        await user.save({ validateBeforeSave: false });
-      }
-
-      const patientId = await getPatientId(user._id);
-      await AuditLog.create({
-        patient_id: patientId,
-        actor_user_id: user._id,
-        action_type: 'login',
-        action_status: 'success',
-        details: 'User logged in via Google',
-        ip_address: req.ip,
-      });
-
-      return sendToken(user, 200, res);
-    }
-
-    // New Google user — role required
-    const userRole = role === 'doctor' ? 'doctor' : 'patient';
-    user = await User.create({
-      first_name: given_name || 'User',
-      last_name: family_name || '',
-      email,
-      google_id: googleId,
-      auth_provider: 'google',
-      role: userRole,
-      isVerified: true,
-      password_hash: undefined,
-    });
-
-    if (userRole === 'patient') {
-      await Patient.create({ user_id: user._id });
-    } else {
-      await HealthcareProvider.create({
-        user_id: user._id,
-        specialization: '',
-        organisation_name: '',
-      });
-    }
-
-    await AuditLog.create({
-      patient_id: userRole === 'patient' ? (await getPatientId(user._id)) : null,
-      actor_user_id: user._id,
-      action_type: 'login',
-      action_status: 'success',
-      details: 'New user registered via Google',
-      ip_address: req.ip,
-    });
-
-    sendToken(user, 201, res);
-  } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(500).json({ success: false, message: 'Google sign-in failed. Please try again.' });
-  }
-});
 
 // ─── REGISTER PATIENT ────────────────────────────────────────────────────────
 router.post('/register/patient', async (req, res) => {
@@ -515,12 +494,9 @@ router.delete('/delete-account', protect, async (req, res) => {
   try {
     const { password } = req.body;
     const user = await User.findById(req.user.id).select('+password_hash');
-
-    if (user.auth_provider !== 'google') {
-      if (!password) return res.status(400).json({ success: false, message: 'Please provide your password to confirm' });
-      if (!user || !(await user.matchPassword(password))) {
-        return res.status(401).json({ success: false, message: 'Password is incorrect' });
-      }
+    if (!password) return res.status(400).json({ success: false, message: 'Please provide your password to confirm' });
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ success: false, message: 'Password is incorrect' });
     }
 
     const MedicalRecord = require('../models/MedicalRecord');
