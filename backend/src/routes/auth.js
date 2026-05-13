@@ -258,7 +258,7 @@ router.post('/register/doctor', async (req, res) => {
     const user = await User.create({ first_name, last_name, email, password_hash: password, role: 'doctor', phone_number });
     await HealthcareProvider.create({ user_id: user._id, specialization, organisation_name });
 
-    const emailSent = await sendOtpEmail(user);
+    const emailSent = await sendVerificationEmail(user);
 
     if (!emailSent) {
       user.isVerified = true;
@@ -268,37 +268,53 @@ router.post('/register/doctor', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      requiresOtp: true,
+      requiresVerification: true,
       email,
-      message: 'Registration successful. Please enter the verification code sent to your email.',
+      message: 'Registration successful. Please check your email and click the verification link.',
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// ─── VERIFY OTP ──────────────────────────────────────────────────────────────
-router.post('/verify-otp', async (req, res) => {
+// ─── VERIFY EMAIL ────────────────────────────────────────────────────────────
+router.get('/verify-email/:token', async (req, res) => {
   try {
-    const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ success: false, message: 'Please provide email and code' });
+    const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await User.findOne({ verificationToken: hashed, verificationExpires: { $gt: Date.now() } });
 
-    const user = await User.findOne({ email, otp, otpExpires: { $gt: Date.now() } });
-    if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+    if (!user) {
+      return res.status(400).send(`<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:60px 20px;">
+<img src="https://storage.googleapis.com/medi-vault-5f2a1.firebasestorage.app/assets/medivault-logo.png" alt="MediVault" width="120" style="display:block;margin:0 auto 24px;" />
+<table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:480px;">
+<tr><td style="padding:48px 40px;text-align:center;">
+<h1 style="color:#DC2626;font-size:24px;margin:0 0 12px;">Link Expired</h1>
+<p style="color:#6B7280;font-size:15px;margin:0;">This verification link is invalid or has expired. Please open the MediVault app and request a new one.</p>
+</td></tr></table></td></tr></table></body></html>`);
+    }
 
     user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpires = undefined;
+    user.verificationToken = undefined;
+    user.verificationExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
-    sendToken(user, 200, res);
+    res.status(200).send(`<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:60px 20px;">
+<img src="https://storage.googleapis.com/medi-vault-5f2a1.firebasestorage.app/assets/medivault-logo.png" alt="MediVault" width="120" style="display:block;margin:0 auto 24px;" />
+<table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:480px;">
+<tr><td style="padding:48px 40px;text-align:center;">
+<h1 style="color:#16A34A;font-size:24px;margin:0 0 12px;">Account Verified!</h1>
+<p style="color:#6B7280;font-size:15px;margin:0 0 8px;">Hi <strong style="color:#111827;">${user.first_name}</strong>, your MediVault account has been verified successfully.</p>
+<p style="color:#6B7280;font-size:15px;margin:0;">You can now return to the app and sign in.</p>
+</td></tr></table></td></tr></table></body></html>`);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).send('Something went wrong. Please try again.');
   }
 });
 
-// ─── RESEND OTP ───────────────────────────────────────────────────────────────
-router.post('/resend-otp', async (req, res) => {
+// ─── RESEND VERIFICATION ─────────────────────────────────────────────────────
+router.post('/resend-verification', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Please provide your email' });
@@ -307,8 +323,8 @@ router.post('/resend-otp', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'No account found with that email' });
     if (user.isVerified) return res.status(400).json({ success: false, message: 'Account is already verified' });
 
-    await sendOtpEmail(user);
-    res.status(200).json({ success: true, message: 'Verification code sent. Please check your email.' });
+    await sendVerificationEmail(user);
+    res.status(200).json({ success: true, message: 'Verification email resent. Please check your inbox.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -326,8 +342,7 @@ router.post('/login', async (req, res) => {
     }
 
     if (!user.isVerified) {
-      await sendOtpEmail(user);
-      return res.status(401).json({ success: false, message: 'Please verify your email. A new code has been sent.', requiresOtp: true, email });
+      return res.status(401).json({ success: false, message: 'Please verify your email first. Check your inbox for the verification link.', requiresVerification: true, email });
     }
 
     const patientId = await getPatientId(user._id);
