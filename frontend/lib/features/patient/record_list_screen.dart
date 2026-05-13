@@ -237,35 +237,12 @@ class _RecordListScreenState extends State<RecordListScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Sort & Filter',
+            const Text('Filters',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            const Text('Sort by',
-                style: TextStyle(
-                    color: AppColors.textSecondary, fontSize: 12)),
-            const SizedBox(height: 8),
-            ...{
-              _SortOption.dateDesc: 'Newest first',
-              _SortOption.dateAsc:  'Oldest first',
-              _SortOption.titleAZ:  'Title A → Z',
-              _SortOption.titleZA:  'Title Z → A',
-            }.entries.map((e) => RadioListTile<_SortOption>(
-                  value: e.key,
-                  groupValue: _sortOption,
-                  activeColor: AppColors.accentBlue,
-                  title: Text(e.value,
-                      style: const TextStyle(color: Colors.white)),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (v) {
-                    if (v != null) setState(() => _sortOption = v);
-                    _applyFilters();
-                    Navigator.pop(context);
-                  },
-                )),
-            const Divider(color: Color(0xFF1E2D40)),
             const Text('Sharing status',
                 style: TextStyle(
                     color: AppColors.textSecondary, fontSize: 12)),
@@ -294,6 +271,70 @@ class _RecordListScreenState extends State<RecordListScreen> {
     );
   }
 
+  Widget _sortChipsRow() {
+    const options = {
+      _SortOption.dateDesc: 'Newest',
+      _SortOption.dateAsc:  'Oldest',
+      _SortOption.titleAZ:  'A → Z',
+      _SortOption.titleZA:  'Z → A',
+    };
+    return Row(
+      children: [
+        const Text('Sort:',
+            style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: options.entries.map((e) {
+                final selected = _sortOption == e.key;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _sortOption = e.key);
+                    _applyFilters();
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    margin: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.accentBlue
+                          : AppColors.bgSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.accentBlue
+                            : Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: Text(
+                      e.value,
+                      style: TextStyle(
+                        color: selected
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Color _categoryColor(String cat) {
     switch (cat) {
       case 'lab_report':        return const Color(0xFF185FA5);
@@ -317,7 +358,6 @@ class _RecordListScreenState extends State<RecordListScreen> {
   @override
   Widget build(BuildContext context) {
     final activeFilters = (_sharedFilter != _SharedFilter.all ? 1 : 0) +
-        (_sortOption != _SortOption.dateDesc ? 1 : 0) +
         (_dateFrom != null ? 1 : 0) +
         (_dateTo != null ? 1 : 0);
 
@@ -443,6 +483,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                _sortChipsRow(),
               ],
             ),
           ),
@@ -660,8 +702,11 @@ class _RecordListScreenState extends State<RecordListScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isFrom) _dateFrom = picked;
-        else _dateTo = picked;
+        if (isFrom) {
+          _dateFrom = picked;
+        } else {
+          _dateTo = picked;
+        }
       });
       _applyFilters();
     }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../data/services/api_service.dart';
 import '../../core/constants/constants.dart';
@@ -35,6 +36,12 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
   final _medicationCtrl = TextEditingController();
   final _conditionCtrl  = TextEditingController();
 
+  final _doctorSearchCtrl       = TextEditingController();
+  List<dynamic> _doctorSearchResults = [];
+  bool _isDoctorSearchLoading   = false;
+  Timer? _doctorSearchDebounce;
+  String _doctorSearchQuery     = '';
+
   static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   static const _genders     = ['Male', 'Female', 'Other', 'Prefer not to say'];
 
@@ -58,6 +65,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     _allergyCtrl.dispose();
     _medicationCtrl.dispose();
     _conditionCtrl.dispose();
+    _doctorSearchCtrl.dispose();
+    _doctorSearchDebounce?.cancel();
     super.dispose();
   }
 
@@ -124,97 +133,100 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     }
   }
 
-  Future<void> _grantAccessToDoctor() async {
-    final emailCtrl = TextEditingController();
-    bool isGranting = false;
-    String? errorMsg;
+  void _onDoctorSearch(String value) {
+    setState(() => _doctorSearchQuery = value);
+    _doctorSearchDebounce?.cancel();
+    if (value.trim().isEmpty) {
+      setState(() => _doctorSearchResults = []);
+      return;
+    }
+    _doctorSearchDebounce =
+        Timer(const Duration(milliseconds: 400), _searchDoctors);
+  }
 
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.bgCard,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40, height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+  Future<void> _searchDoctors() async {
+    final q = _doctorSearchQuery.trim();
+    if (q.isEmpty) return;
+    setState(() => _isDoctorSearchLoading = true);
+    final res = await ApiService.get(
+        '${Constants.doctors}?search=${Uri.encodeComponent(q)}');
+    if (!mounted) return;
+    setState(() {
+      _isDoctorSearchLoading = false;
+      _doctorSearchResults =
+          res['success'] == true ? (res['doctors'] as List? ?? []) : [];
+    });
+  }
+
+  Future<void> _grantAccessFromSearch(Map<String, dynamic> doctor) async {
+    final email = doctor['email'] as String? ?? '';
+    if (email.isEmpty) {
+      _showSnackBar('Doctor email not found', isError: true);
+      return;
+    }
+    final res = await ApiService.post(
+        Constants.healthProfileGrantAccess, {'doctor_email': email});
+    if (!mounted) return;
+    if (res['success'] == true) {
+      _showSnackBar(
+          res['message'] ?? 'Access granted successfully', isError: false);
+      setState(() {
+        _doctorSearchCtrl.clear();
+        _doctorSearchQuery = '';
+        _doctorSearchResults = [];
+      });
+      _loadProfile();
+    } else {
+      _showSnackBar(res['message'] ?? 'Failed to grant access', isError: true);
+    }
+  }
+
+  Widget _doctorResultCard(Map<String, dynamic> doctor) {
+    final name = doctor['name'] as String? ?? 'Unknown Doctor';
+    final spec = doctor['specialization'] as String? ?? '';
+    final org  = doctor['organisation_name'] as String? ?? '';
+    return DarkListCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            ProfileAvatar(role: 'doctor', radius: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14)),
+                  if (spec.isNotEmpty)
+                    Text(spec,
+                        style: const TextStyle(
+                            color: AppColors.accentBlue, fontSize: 12)),
+                  if (org.isNotEmpty)
+                    Text(org,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 11)),
+                ],
               ),
-              const Text('Give Access to a Doctor',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text(
-                "Enter the doctor's email address to give them access to your health profile. You can revoke access at any time.",
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            TextButton(
+              onPressed: () => _grantAccessFromSearch(doctor),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.accentBlue.withValues(alpha: 0.15),
+                foregroundColor: AppColors.accentBlue,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Colors.white),
-                decoration: darkInputDecoration("Doctor's email address",
-                    prefixIcon: Icons.email_outlined),
-              ),
-              if (errorMsg != null) ...[
-                const SizedBox(height: 8),
-                Text(errorMsg!,
-                    style: const TextStyle(
-                        color: AppColors.errorRed, fontSize: 13)),
-              ],
-              const SizedBox(height: 20),
-              DarkButton(
-                label: 'Give Access',
-                icon: Icons.lock_open_outlined,
-                isLoading: isGranting,
-                onPressed: () async {
-                  final email = emailCtrl.text.trim();
-                  if (email.isEmpty) {
-                    setSheet(() => errorMsg = 'Please enter an email address');
-                    return;
-                  }
-                  setSheet(() {
-                    isGranting = true;
-                    errorMsg = null;
-                  });
-                  final res = await ApiService.post(
-                    Constants.healthProfileGrantAccess,
-                    {'doctor_email': email},
-                  );
-                  if (!ctx.mounted) return;
-                  if (res['success'] == true) {
-                    Navigator.pop(ctx);
-                    _showSnackBar(
-                        res['message'] ?? 'Access granted successfully',
-                        isError: false);
-                    _loadProfile();
-                  } else {
-                    setSheet(() {
-                      isGranting = false;
-                      errorMsg = res['message'] ?? 'Failed to grant access';
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
+              child: const Text('Give Access',
+                  style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            ),
+          ],
         ),
       ),
     );
@@ -534,21 +546,61 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _grantAccessToDoctor,
-              icon: const Icon(Icons.person_add_outlined, size: 18),
-              label: const Text('Give Access to a Doctor',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accentBlue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _doctorSearchCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: darkInputDecoration(
+                  'Search doctors by name…',
+                  prefixIcon: Icons.person_search_outlined,
+                  suffix: _isDoctorSearchLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: AppColors.accentBlue))
+                      : _doctorSearchQuery.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _doctorSearchCtrl.clear();
+                                setState(() {
+                                  _doctorSearchQuery = '';
+                                  _doctorSearchResults = [];
+                                });
+                              },
+                              child: const Icon(Icons.close,
+                                  size: 16, color: AppColors.textSecondary))
+                          : null,
+                ),
+                onChanged: _onDoctorSearch,
               ),
-            ),
+              if (_doctorSearchQuery.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                if (_doctorSearchResults.isEmpty && !_isDoctorSearchLoading)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'No doctors found for "$_doctorSearchQuery"',
+                      style: const TextStyle(
+                          color: AppColors.textSecondary, fontSize: 13),
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 240),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: _doctorSearchResults.length,
+                      itemBuilder: (_, i) => _doctorResultCard(
+                          _doctorSearchResults[i] as Map<String, dynamic>),
+                    ),
+                  ),
+                const Divider(color: Color(0xFF1E2D40)),
+              ],
+            ],
           ),
         ),
         Expanded(
@@ -560,7 +612,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.lock_outline,
-                            size: 64, color: Colors.white.withValues(alpha: 0.2)),
+                            size: 64,
+                            color: Colors.white.withValues(alpha: 0.2)),
                         const SizedBox(height: 16),
                         const Text('No Doctors Have Access',
                             style: TextStyle(
@@ -568,9 +621,11 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Tap the button above to give a doctor access to your health profile. You can revoke access at any time.',
-                          style: TextStyle(
+                        Text(
+                          _doctorSearchQuery.isEmpty
+                              ? 'Search for a doctor above to give them access to your health profile.'
+                              : 'Use the search results above to give a doctor access.',
+                          style: const TextStyle(
                               color: AppColors.textSecondary, fontSize: 13),
                           textAlign: TextAlign.center,
                         ),
@@ -586,17 +641,20 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                     children: [
                       if (pending.isNotEmpty) ...[
-                        _requestSectionHeader('Pending', Colors.orange, pending.length),
+                        _requestSectionHeader(
+                            'Pending', Colors.orange, pending.length),
                         ...pending.map((r) => _requestCard(r, showActions: true)),
                         const SizedBox(height: 16),
                       ],
                       if (approved.isNotEmpty) ...[
-                        _requestSectionHeader('Approved Doctors', AppColors.ecgGreen, approved.length),
+                        _requestSectionHeader(
+                            'Approved Doctors', AppColors.ecgGreen, approved.length),
                         ...approved.map((r) => _requestCard(r, showRevoke: true)),
                         const SizedBox(height: 16),
                       ],
                       if (others.isNotEmpty) ...[
-                        _requestSectionHeader('Previous', AppColors.textSecondary, others.length),
+                        _requestSectionHeader(
+                            'Previous', AppColors.textSecondary, others.length),
                         ...others.map((r) => _requestCard(r)),
                       ],
                     ],

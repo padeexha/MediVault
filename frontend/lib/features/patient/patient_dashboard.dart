@@ -25,7 +25,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _userName = '';
   String? _gender;
   String? _profilePicture;
-  Map<String, int> _categoryCounts = {};
   int _totalRecords = 0;
   int _sharedWithDoctors = 0;
   int _profileCompletionPct = 0;
@@ -61,12 +60,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           .toList();
     }
     records.sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
-
-    // Category counts
-    final counts = <String, int>{};
-    for (final r in records) {
-      counts[r.category] = (counts[r.category] ?? 0) + 1;
-    }
 
     // Shared-with-doctors count
     int shared = 0;
@@ -116,7 +109,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
     setState(() {
       _userName            = name;
-      _categoryCounts      = counts;
       _totalRecords        = records.length;
       _sharedWithDoctors   = shared;
       _profileCompletionPct = completionPct;
@@ -312,13 +304,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           label: 'Shared',
           value: '$_sharedWithDoctors',
           color: AppColors.ecgGreen,
-        )),
-        const SizedBox(width: 10),
-        Expanded(child: _statCard(
-          icon: Icons.category_outlined,
-          label: 'Categories',
-          value: '${_categoryCounts.length}',
-          color: const Color(0xFF534AB7),
         )),
       ],
     );
