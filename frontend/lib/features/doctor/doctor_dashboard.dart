@@ -23,7 +23,6 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
   String? _profilePicture;
   int  _totalPatients    = 0;
   int  _totalRecords     = 0;
-  int  _pendingHealthProfileRequests = 0;
   bool _isLoading = true;
 
   @override
@@ -39,7 +38,6 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     final results = await Future.wait([
       ApiService.get(Constants.getProfile),
       ApiService.get(Constants.sharedWithMe),
-      ApiService.get(Constants.healthProfileMyAccess),
     ]);
 
     if (!mounted) return;
@@ -68,15 +66,6 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       setState(() {
         _totalPatients = data.length;
         _totalRecords  = total;
-      });
-    }
-
-    final healthAccess = results[2];
-    if (healthAccess['success'] == true) {
-      final data = healthAccess['data'] as List? ?? [];
-      setState(() {
-        _pendingHealthProfileRequests =
-            data.where((d) => d['status'] == 'pending').length;
       });
     }
 
@@ -244,11 +233,6 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
           '$_totalRecords', 'Records',
           Icons.folder_shared_outlined, const Color(0xFF1D9E75),
         )),
-        const SizedBox(width: 10),
-        Expanded(child: _statCard(
-          '$_pendingHealthProfileRequests', 'Pending',
-          Icons.hourglass_empty_outlined, Colors.orange,
-        )),
       ],
     );
   }
@@ -365,39 +349,18 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
                   const SizedBox(height: 3),
-                  Text(
-                    _pendingHealthProfileRequests > 0
-                        ? '$_pendingHealthProfileRequests pending request${_pendingHealthProfileRequests == 1 ? '' : 's'}'
-                        : 'Request & view patient health profiles',
+                  const Text(
+                    'Request & view patient health profiles',
                     style: TextStyle(
-                      color: _pendingHealthProfileRequests > 0
-                          ? Colors.orange
-                          : AppColors.textSecondary,
+                      color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            if (_pendingHealthProfileRequests > 0)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$_pendingHealthProfileRequests',
-                  style: const TextStyle(
-                      color: Colors.orange,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13),
-                ),
-              )
-            else
-              const Icon(Icons.arrow_forward_ios,
-                  size: 14, color: AppColors.textSecondary),
+            const Icon(Icons.arrow_forward_ios,
+                size: 14, color: AppColors.textSecondary),
           ],
         ),
       ),
