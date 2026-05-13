@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/services/api_service.dart';
 import '../../core/constants/constants.dart';
@@ -27,6 +28,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
   _SharedFilter _sharedFilter = _SharedFilter.all;
   Set<String> _favouriteIds = {};
   Set<String> _sharedRecordIds = {};
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
 
   static const _categories = [
     {'value': 'all',              'label': 'All'},
@@ -122,6 +125,15 @@ class _RecordListScreenState extends State<RecordListScreen> {
       list = list.where((r) => _sharedRecordIds.contains(r.id)).toList();
     } else if (_sharedFilter == _SharedFilter.private) {
       list = list.where((r) => !_sharedRecordIds.contains(r.id)).toList();
+    }
+
+    // Date range
+    if (_dateFrom != null) {
+      list = list.where((r) => !r.uploadDate.isBefore(_dateFrom!)).toList();
+    }
+    if (_dateTo != null) {
+      final endOfDay = DateTime(_dateTo!.year, _dateTo!.month, _dateTo!.day, 23, 59, 59);
+      list = list.where((r) => !r.uploadDate.isAfter(endOfDay)).toList();
     }
 
     // Sort
@@ -305,12 +317,14 @@ class _RecordListScreenState extends State<RecordListScreen> {
   @override
   Widget build(BuildContext context) {
     final activeFilters = (_sharedFilter != _SharedFilter.all ? 1 : 0) +
-        (_sortOption != _SortOption.dateDesc ? 1 : 0);
+        (_sortOption != _SortOption.dateDesc ? 1 : 0) +
+        (_dateFrom != null ? 1 : 0) +
+        (_dateTo != null ? 1 : 0);
 
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: darkGlassAppBar(
-        title: 'My Records',
+        title: 'Records',
         actions: [
           Stack(
             alignment: Alignment.topRight,
@@ -404,6 +418,30 @@ class _RecordListScreenState extends State<RecordListScreen> {
                       );
                     },
                   ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _datePicker(
+                        'From', _dateFrom, () => _pickDate(true),
+                        onClear: () {
+                          setState(() => _dateFrom = null);
+                          _applyFilters();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _datePicker(
+                        'To', _dateTo, () => _pickDate(false),
+                        onClear: () {
+                          setState(() => _dateTo = null);
+                          _applyFilters();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -613,10 +651,72 @@ class _RecordListScreenState extends State<RecordListScreen> {
     );
   }
 
+  Future<void> _pickDate(bool isFrom) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: (isFrom ? _dateFrom : _dateTo) ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isFrom) _dateFrom = picked;
+        else _dateTo = picked;
+      });
+      _applyFilters();
+    }
+  }
+
+  Widget _datePicker(String hint, DateTime? date, VoidCallback onTap,
+      {VoidCallback? onClear}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: date != null
+                ? AppColors.accentBlue
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today,
+                size: 12,
+                color: date != null ? AppColors.accent : AppColors.textSecondary),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                date != null ? DateFormat('dd/MM/yy').format(date) : hint,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: date != null ? Colors.white : AppColors.textSecondary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (date != null && onClear != null)
+              GestureDetector(
+                onTap: onClear,
+                child: const Icon(Icons.close,
+                    size: 12, color: AppColors.textSecondary),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _emptyState() {
     final hasSearch = _searchQuery.isNotEmpty ||
         _selectedCategory != 'all' ||
-        _sharedFilter != _SharedFilter.all;
+        _sharedFilter != _SharedFilter.all ||
+        _dateFrom != null ||
+        _dateTo != null;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),

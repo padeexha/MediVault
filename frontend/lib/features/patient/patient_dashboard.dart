@@ -11,7 +11,6 @@ import 'record_list_screen.dart';
 import 'record_detail_screen.dart';
 import 'permissions_screen.dart';
 import 'audit_log_screen.dart';
-import 'search_screen.dart';
 import 'doctor_selection_screen.dart';
 import 'health_profile_screen.dart';
 
@@ -221,68 +220,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           const SizedBox(height: 8),
                           ..._recentRecords.map((r) => _recentRecordCard(r)),
                         ],
-                        if (_categoryCounts.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          const Text('Records by Category',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 14),
-                          ..._categoryCounts.entries.map((e) {
-                            final rec = RecordModel(
-                              id: '', patientId: '', title: '',
-                              category: e.key, fileName: '',
-                              fileType: '', fileSize: 0, filePath: '',
-                              uploadDate: DateTime.now(), isDeleted: false,
-                            );
-                            final color = _categoryColor(e.key);
-                            return DarkListCard(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const RecordListScreen(),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: color.withValues(alpha: 0.18),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(_categoryIcon(e.key),
-                                          color: color, size: 18),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Text(rec.categoryDisplay,
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w500)),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: color.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text('${e.value}',
-                                          style: TextStyle(
-                                              color: color,
-                                              fontWeight: FontWeight.bold)),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
                         const SizedBox(height: 80),
                       ]),
                     ),
@@ -489,13 +426,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
             MaterialPageRoute(builder: (_) => const UploadRecordScreen()));
         _loadData();
       }),
-      _ActionItem(Icons.folder_open,     'My Records',   const Color(0xFF1D9E75), () {
+      _ActionItem(Icons.folder_open,     'Records',      const Color(0xFF1D9E75), () {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const RecordListScreen()));
-      }),
-      _ActionItem(Icons.search,          'Search',       const Color(0xFF534AB7), () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const SearchScreen()));
       }),
       _ActionItem(Icons.people,          'Manage Access',const Color(0xFF854F0B), () {
         Navigator.push(context,
