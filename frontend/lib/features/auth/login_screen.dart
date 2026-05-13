@@ -61,11 +61,20 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const PatientDashboard()),
         );
       }
-    } else if (response['requiresOtp'] == true) {
+    } else if (response['requiresVerification'] == true) {
       final email = response['email'] ?? _emailController.text.trim();
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => OtpScreen(email: email)),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response['message'] ?? 'Please verify your email first.'),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Resend',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => OtpScreen(email: email)),
+            ),
+          ),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

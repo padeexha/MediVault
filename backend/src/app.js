@@ -40,67 +40,26 @@ if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => console.log(`Medi Vault server running on port ${PORT}`));
 }
 
-module.exports = app;
-
-app.get('/verify-email/:token', async (req, res) => {
-  try {
-    const crypto = require('crypto');
-    const User = require('./models/User');
-    const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await User.findOne({
-      emailVerificationToken: hashed,
-      emailVerificationExpires: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.send(`
-        <html>
-          <body style="font-family: Arial; text-align: center; padding: 50px;">
-            <h2 style="color: red;">Verification Failed</h2>
-            <p>This link is invalid or has expired.</p>
-          </body>
-        </html>
-      `);
-    }
-
-    user.isVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save();
-
-    res.send(`
-      <html>
-        <body style="font-family: Arial; text-align: center; padding: 50px;">
-          <h2 style="color: #0F6E56;">Email Verified Successfully</h2>
-          <p>Your email has been verified. You can now log in to Medi Vault.</p>
-          <p style="color: grey; font-size: 14px;">You can close this window.</p>
-        </body>
-      </html>
-    `);
-  } catch (error) {
-    res.send(`<html><body><h2>Error: ${error.message}</h2></body></html>`);
-  }
-});
-
-app.get('/reset-password/:token', async (req, res) => {
+app.get('/reset-password/:token', (req, res) => {
   const token = req.params.token;
+  const apiBase = process.env.BACKEND_URL || 'https://medivaultejaa.onrender.com';
   res.send(`
     <html>
-      <head><title>Reset Password - Medi Vault</title></head>
+      <head><title>Reset Password - MediVault</title></head>
       <body style="font-family: Arial; max-width: 400px; margin: 50px auto; padding: 20px;">
         <h2 style="color: #0F6E56;">Reset Your Password</h2>
         <form id="resetForm">
           <input type="hidden" id="token" value="${token}">
           <div style="margin-bottom: 16px;">
             <label>New Password</label><br>
-            <input type="password" id="password" style="width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ccc; border-radius: 8px;" placeholder="Minimum 8 characters">
+            <input type="password" id="password" style="width:100%;padding:10px;margin-top:8px;border:1px solid #ccc;border-radius:8px;" placeholder="Minimum 8 characters">
           </div>
           <div style="margin-bottom: 16px;">
             <label>Confirm Password</label><br>
-            <input type="password" id="confirm" style="width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ccc; border-radius: 8px;" placeholder="Repeat password">
+            <input type="password" id="confirm" style="width:100%;padding:10px;margin-top:8px;border:1px solid #ccc;border-radius:8px;" placeholder="Repeat password">
           </div>
-          <button type="button" onclick="resetPassword()" style="width: 100%; padding: 12px; background: #0F6E56; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">Reset Password</button>
-          <p id="message" style="margin-top: 16px; text-align: center;"></p>
+          <button type="button" onclick="resetPassword()" style="width:100%;padding:12px;background:#0F6E56;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">Reset Password</button>
+          <p id="message" style="margin-top:16px;text-align:center;"></p>
         </form>
         <script>
           async function resetPassword() {
@@ -108,32 +67,21 @@ app.get('/reset-password/:token', async (req, res) => {
             const confirm = document.getElementById('confirm').value;
             const token = document.getElementById('token').value;
             const message = document.getElementById('message');
-
-            if (password.length < 8) {
-              message.style.color = 'red';
-              message.textContent = 'Password must be at least 8 characters';
-              return;
-            }
-            if (password !== confirm) {
-              message.style.color = 'red';
-              message.textContent = 'Passwords do not match';
-              return;
-            }
-
-            const response = await fetch('https://medivault-ejaa.onrender.com/api/auth/reset-password/' + token, {
+            if (password.length < 8) { message.style.color='red'; message.textContent='Password must be at least 8 characters'; return; }
+            if (password !== confirm) { message.style.color='red'; message.textContent='Passwords do not match'; return; }
+            const response = await fetch('${apiBase}/api/auth/reset-password/' + token, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ password })
             });
             const data = await response.json();
-
             if (data.success) {
-              message.style.color = '#0F6E56';
-              message.textContent = 'Password reset successfully. You can now log in.';
-              document.getElementById('resetForm').style.display = 'none';
+              message.style.color='#0F6E56';
+              message.textContent='Password reset successfully. You can now log in.';
+              document.getElementById('resetForm').style.display='none';
             } else {
-              message.style.color = 'red';
-              message.textContent = data.message || 'Something went wrong';
+              message.style.color='red';
+              message.textContent=data.message||'Something went wrong';
             }
           }
         </script>
@@ -141,3 +89,5 @@ app.get('/reset-password/:token', async (req, res) => {
     </html>
   `);
 });
+
+module.exports = app;

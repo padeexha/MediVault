@@ -23,6 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   String _selectedRole = 'patient';
+  String? _selectedGender;
 
   @override
   void dispose() {
@@ -50,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'email': _emailController.text.trim(),
       'password': _passwordController.text,
       'phone_number': _phoneController.text.trim(),
+      if (_selectedGender != null) 'gender': _selectedGender!,
       if (_selectedRole == 'doctor') ...{
         'specialization': _specializationController.text.trim(),
         'organisation_name': _organisationController.text.trim(),
@@ -62,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (response['success'] == true) {
-      if (response['requiresOtp'] == true) {
+      if (response['requiresVerification'] == true) {
         final email = response['email'] ?? _emailController.text.trim();
         Navigator.pushReplacement(
           context,
@@ -112,6 +114,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: selected ? Colors.white : AppColors.textSecondary,
                   size: 28),
               const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected ? Colors.white : AppColors.textSecondary,
+                  fontWeight:
+                      selected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _genderButton(String gender, String label, IconData icon) {
+    final selected = _selectedGender == gender;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedGender = gender),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.accentBlue.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected
+                  ? AppColors.accentBlue
+                  : Colors.white.withValues(alpha: 0.15),
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  color: selected ? Colors.white : AppColors.textSecondary,
+                  size: 22),
+              const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
@@ -252,6 +296,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hintText: 'Phone number (optional)',
                           prefixIcon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          'Gender',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            _genderButton('male', 'Male', Icons.male),
+                            const SizedBox(width: 12),
+                            _genderButton('female', 'Female', Icons.female),
+                          ],
                         ),
                         if (_selectedRole == 'doctor') ...[
                           const SizedBox(height: 14),

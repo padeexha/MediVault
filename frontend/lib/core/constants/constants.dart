@@ -9,8 +9,7 @@ class Constants {
   static const String login = '$baseUrl/auth/login';
   static const String logout = '$baseUrl/auth/logout';
   static const String forgotPassword = '$baseUrl/auth/forgot-password';
-  static const String verifyOtp = '$baseUrl/auth/verify-otp';
-  static const String resendOtp = '$baseUrl/auth/resend-otp';
+  static const String resendVerification = '$baseUrl/auth/resend-verification';
   static const String getProfile = '$baseUrl/auth/profile';
   static const String updateProfile = '$baseUrl/auth/profile';
   static const String updateProfilePicture = '$baseUrl/auth/profile/picture';
