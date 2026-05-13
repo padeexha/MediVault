@@ -11,10 +11,10 @@ const userSchema = new mongoose.Schema({
   google_id:     { type: String, sparse: true },
   auth_provider: { type: String, enum: ['local', 'google'], default: 'local' },
 
-  // Email verification OTP
-  otpCode:        String,
-  otpExpires:     Date,
-  isVerified:     { type: Boolean, default: false },
+  // Email verification
+  isVerified:          { type: Boolean, default: false },
+  verificationToken:   String,
+  verificationExpires: Date,
 
   // Profile extras
   gender:          { type: String, enum: ['male', 'female', 'other', 'prefer_not_to_say'], default: null },

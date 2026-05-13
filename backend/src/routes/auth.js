@@ -24,7 +24,7 @@ const hasEmailService = () => {
 const sendVerificationEmail = async (user) => {
   const token = crypto.randomBytes(32).toString('hex');
   user.verificationToken = crypto.createHash('sha256').update(token).digest('hex');
-  user.verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  user.verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
   await user.save({ validateBeforeSave: false });
 
   if (!hasEmailService()) {
@@ -32,7 +32,7 @@ const sendVerificationEmail = async (user) => {
     return false;
   }
 
-  const verifyUrl = `https://medi-vault-backend-28w8.onrender.com/api/auth/verify-email/${token}`;
+  const verifyUrl = `${process.env.BACKEND_URL || 'https://medivaultejaa.onrender.com'}/api/auth/verify-email/${token}`;
   const { BrevoClient } = require('@getbrevo/brevo');
   const client = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
@@ -45,15 +45,11 @@ const sendVerificationEmail = async (user) => {
 <body style="margin:0;padding:0;background-color:#f0f4f8;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr><td align="center" style="padding:40px 20px;">
-
-    <!-- Logo -->
     <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr><td align="center">
         <img src="https://storage.googleapis.com/medi-vault-5f2a1.firebasestorage.app/assets/medivault-logo.png" alt="MediVault" width="120" style="display:block;margin:0 auto;" />
       </td></tr>
     </table>
-
-    <!-- Card -->
     <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:520px;">
       <tr><td style="padding:48px 40px;text-align:center;">
         <h1 style="margin:0 0 8px;font-size:26px;color:#111827;">Verify Your Account</h1>
@@ -62,15 +58,12 @@ const sendVerificationEmail = async (user) => {
         <p style="margin:28px 0 0;color:#9CA3AF;font-size:13px;">If you did not create a MediVault account, you can safely ignore this email.</p>
       </td></tr>
     </table>
-
-    <!-- Footer -->
     <table cellpadding="0" cellspacing="0" style="margin-top:28px;">
       <tr><td align="center" style="color:#9CA3AF;font-size:12px;line-height:1.8;">
         MediVault &mdash; Sri Lanka<br>
         &copy; 2026 MediVault. All rights reserved.
       </td></tr>
     </table>
-
   </td></tr>
 </table>
 </body>
@@ -223,14 +216,14 @@ router.post('/register/patient', async (req, res) => {
     if (!emailSent) {
       user.isVerified = true;
       await user.save({ validateBeforeSave: false });
+      return res.status(201).json({ success: true, email, message: 'Registration successful. Email service not configured — account auto-verified.' });
     }
 
     res.status(201).json({
       success: true,
+      requiresVerification: true,
       email,
-      message: emailSent
-        ? 'Registration successful. Please check your email and click the verification link.'
-        : 'Registration successful. Email service not configured — account auto-verified.',
+      message: 'Registration successful. Please check your email and click the verification link.',
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -265,63 +258,47 @@ router.post('/register/doctor', async (req, res) => {
     const user = await User.create({ first_name, last_name, email, password_hash: password, role: 'doctor', phone_number });
     await HealthcareProvider.create({ user_id: user._id, specialization, organisation_name });
 
-    const emailSent = await sendVerificationEmail(user);
+    const emailSent = await sendOtpEmail(user);
 
     if (!emailSent) {
       user.isVerified = true;
       await user.save({ validateBeforeSave: false });
+      return res.status(201).json({ success: true, email, message: 'Registration successful. Email service not configured — account auto-verified.' });
     }
 
     res.status(201).json({
       success: true,
+      requiresOtp: true,
       email,
-      message: emailSent
-        ? 'Registration successful. Please check your email and click the verification link.'
-        : 'Registration successful. Email service not configured — account auto-verified.',
+      message: 'Registration successful. Please enter the verification code sent to your email.',
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// ─── VERIFY EMAIL ────────────────────────────────────────────────────────────
-router.get('/verify-email/:token', async (req, res) => {
+// ─── VERIFY OTP ──────────────────────────────────────────────────────────────
+router.post('/verify-otp', async (req, res) => {
   try {
-    const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await User.findOne({ verificationToken: hashed, verificationExpires: { $gt: Date.now() } });
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, message: 'Please provide email and code' });
 
-    if (!user) {
-      return res.status(400).send(`<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:60px 20px;">
-<img src="https://storage.googleapis.com/medi-vault-5f2a1.firebasestorage.app/assets/medivault-logo.png" alt="MediVault" width="120" style="display:block;margin:0 auto 24px;" />
-<table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:480px;">
-<tr><td style="padding:48px 40px;text-align:center;">
-<h1 style="color:#DC2626;font-size:24px;margin:0 0 12px;">Link Expired</h1>
-<p style="color:#6B7280;font-size:15px;margin:0 0 24px;">This verification link is invalid or has expired. Please open the MediVault app and request a new one.</p>
-</td></tr></table></td></tr></table></body></html>`);
-    }
+    const user = await User.findOne({ email, otp, otpExpires: { $gt: Date.now() } });
+    if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
 
     user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationExpires = undefined;
+    user.otp = undefined;
+    user.otpExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
-    res.status(200).send(`<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:60px 20px;">
-<img src="https://storage.googleapis.com/medi-vault-5f2a1.firebasestorage.app/assets/medivault-logo.png" alt="MediVault" width="120" style="display:block;margin:0 auto 24px;" />
-<table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:480px;">
-<tr><td style="padding:48px 40px;text-align:center;">
-<h1 style="color:#16A34A;font-size:24px;margin:0 0 12px;">Account Verified!</h1>
-<p style="color:#6B7280;font-size:15px;margin:0 0 8px;">Hi <strong style="color:#111827;">${user.first_name}</strong>, your MediVault account has been verified successfully.</p>
-<p style="color:#6B7280;font-size:15px;margin:0;">You can now return to the app and log in.</p>
-</td></tr></table></td></tr></table></body></html>`);
+    sendToken(user, 200, res);
   } catch (error) {
-    res.status(500).send('Something went wrong. Please try again.');
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// ─── RESEND VERIFICATION ─────────────────────────────────────────────────────
-router.post('/resend-verification', async (req, res) => {
+// ─── RESEND OTP ───────────────────────────────────────────────────────────────
+router.post('/resend-otp', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Please provide your email' });
@@ -330,9 +307,8 @@ router.post('/resend-verification', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'No account found with that email' });
     if (user.isVerified) return res.status(400).json({ success: false, message: 'Account is already verified' });
 
-    await sendVerificationEmail(user);
-
-    res.status(200).json({ success: true, message: 'Verification email resent. Please check your inbox.' });
+    await sendOtpEmail(user);
+    res.status(200).json({ success: true, message: 'Verification code sent. Please check your email.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -350,7 +326,8 @@ router.post('/login', async (req, res) => {
     }
 
     if (!user.isVerified) {
-      return res.status(401).json({ success: false, message: 'Please verify your email first.', requiresOtp: true, email });
+      await sendOtpEmail(user);
+      return res.status(401).json({ success: false, message: 'Please verify your email. A new code has been sent.', requiresOtp: true, email });
     }
 
     const patientId = await getPatientId(user._id);
