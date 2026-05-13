@@ -14,11 +14,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(require('path').join(__dirname, '..', 'uploads')));
 
-app.use('/api/auth',        require('./routes/auth'));
-app.use('/api/records',     require('./routes/records'));
-app.use('/api/permissions', require('./routes/permissions'));
-app.use('/api/audit',       require('./routes/audit'));
-app.use('/api/search',      require('./routes/search'));
+app.use('/api/auth',           require('./routes/auth'));
+app.use('/api/records',        require('./routes/records'));
+app.use('/api/permissions',    require('./routes/permissions'));
+app.use('/api/audit',          require('./routes/audit'));
+app.use('/api/search',         require('./routes/search'));
+app.use('/api/health-profile', require('./routes/healthProfile'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'Medi Vault API is running', version: '1.0.0' });

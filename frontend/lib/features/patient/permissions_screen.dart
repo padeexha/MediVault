@@ -42,12 +42,43 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     }
   }
 
+  String _categoryLabel(String val) {
+    return _categories
+            .firstWhere((c) => c['value'] == val,
+                orElse: () => {'label': 'Category'})['label'] ??
+        'Category';
+  }
+
+  void _showSnackBar(String msg, {required bool isError}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: isError ? Colors.redAccent : AppColors.ecgGreen,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+                child: Text(msg,
+                    style: const TextStyle(color: Colors.white))),
+          ],
+        ),
+        backgroundColor: AppColors.bgSurface,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   Future<void> _revokeAccess(String permissionId, String doctorName) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => _GlassDialog(
         title: 'Revoke Access',
-        content: 'Remove $doctorName\'s access to your records?',
+        content: 'Remove Dr. $doctorName\'s access to your records? They will no longer be able to view any shared files.',
         confirmLabel: 'Revoke',
         confirmColor: Colors.redAccent,
         onConfirm: () => Navigator.pop(context, true),
@@ -59,10 +90,11 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           '${Constants.permissions}/revoke/$permissionId', {});
       if (!mounted) return;
       if (response['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Access revoked successfully')),
-        );
+        _showSnackBar('Access revoked for Dr. $doctorName', isError: false);
         _loadPermissions();
+      } else {
+        _showSnackBar(
+            response['message'] ?? 'Failed to revoke access', isError: true);
       }
     }
   }
@@ -78,16 +110,11 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
         await ApiService.put('${Constants.permissions}/$permissionId', body);
     if (!mounted) return;
     if (response['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permissions updated successfully')),
-      );
+      _showSnackBar('Permissions updated successfully', isError: false);
       _loadPermissions();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text(response['message'] ?? 'Failed to update permissions')),
-      );
+      _showSnackBar(
+          response['message'] ?? 'Failed to update permissions', isError: true);
     }
   }
 
@@ -350,17 +377,14 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       if (response['success'] == true) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Access granted successfully')),
-                        );
+                        _showSnackBar(
+                            'Access granted to ${foundDoctor!['name'] ?? 'doctor'}',
+                            isError: false);
                         _loadPermissions();
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(response['message'] ??
-                                  'Failed to grant access')),
-                        );
+                        _showSnackBar(
+                            response['message'] ?? 'Failed to grant access',
+                            isError: true);
                       }
                     },
                   ),
@@ -383,21 +407,29 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
               child: CircularProgressIndicator(color: AppColors.accent))
           : _permissions.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.people_outline,
-                          size: 64,
-                          color: Colors.white.withValues(alpha: 0.2)),
-                      const SizedBox(height: 16),
-                      const Text('No doctors have access yet',
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock_outline,
+                            size: 72,
+                            color: Colors.white.withValues(alpha: 0.12)),
+                        const SizedBox(height: 20),
+                        const Text('No Doctors Have Access',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Tap the + button to grant a doctor access to your medical records.',
                           style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      const Text('Tap + to grant a doctor access',
-                          style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13)),
-                    ],
+                              color: AppColors.textSecondary, fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : RefreshIndicator(
@@ -500,7 +532,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                         scope == 'all'
                                             ? 'Full access'
                                             : scope == 'category'
-                                                ? 'Category: ${perm['shared_category'] ?? ''}'
+                                                ? _categoryLabel(perm['shared_category'] ?? '')
                                                 : 'Specific record',
                                         style: const TextStyle(
                                             color: AppColors.accent,
