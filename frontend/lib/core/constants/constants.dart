@@ -33,6 +33,7 @@ class Constants {
   static const String healthProfileMyProfile     = '$baseUrl/health-profile/my-profile';
   static const String healthProfileSave          = '$baseUrl/health-profile/save';
   static const String healthProfileRequestAccess = '$baseUrl/health-profile/request-access';
+  static const String healthProfileGrantAccess   = '$baseUrl/health-profile/grant-access';
   static const String healthProfileMyAccess      = '$baseUrl/health-profile/my-access';
   static String healthProfileApprove(String id)  => '$baseUrl/health-profile/approve/$id';
   static String healthProfileReject(String id)   => '$baseUrl/health-profile/reject/$id';

@@ -32,7 +32,9 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
   final List<String> _allergies          = [];
   final List<String> _medications        = [];
   final List<String> _conditions         = [];
-  final _chipInputCtrl = TextEditingController();
+  final _allergyCtrl    = TextEditingController();
+  final _medicationCtrl = TextEditingController();
+  final _conditionCtrl  = TextEditingController();
 
   static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   static const _genders     = ['Male', 'Female', 'Other', 'Prefer not to say'];
@@ -54,7 +56,9 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     _bloodGroupCtrl.dispose();
     _emergencyNameCtrl.dispose();
     _emergencyNumberCtrl.dispose();
-    _chipInputCtrl.dispose();
+    _allergyCtrl.dispose();
+    _medicationCtrl.dispose();
+    _conditionCtrl.dispose();
     super.dispose();
   }
 
@@ -119,6 +123,102 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     } else {
       _showSnackBar(res['message'] ?? 'Failed to save profile', isError: true);
     }
+  }
+
+  Future<void> _grantAccessToDoctor() async {
+    final emailCtrl = TextEditingController();
+    bool isGranting = false;
+    String? errorMsg;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Text('Give Access to a Doctor',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text(
+                "Enter the doctor's email address to give them access to your health profile. You can revoke access at any time.",
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(color: Colors.white),
+                decoration: darkInputDecoration("Doctor's email address",
+                    prefixIcon: Icons.email_outlined),
+              ),
+              if (errorMsg != null) ...[
+                const SizedBox(height: 8),
+                Text(errorMsg!,
+                    style: const TextStyle(
+                        color: AppColors.errorRed, fontSize: 13)),
+              ],
+              const SizedBox(height: 20),
+              DarkButton(
+                label: 'Give Access',
+                icon: Icons.lock_open_outlined,
+                isLoading: isGranting,
+                onPressed: () async {
+                  final email = emailCtrl.text.trim();
+                  if (email.isEmpty) {
+                    setSheet(() => errorMsg = 'Please enter an email address');
+                    return;
+                  }
+                  setSheet(() {
+                    isGranting = true;
+                    errorMsg = null;
+                  });
+                  final res = await ApiService.post(
+                    Constants.healthProfileGrantAccess,
+                    {'doctor_email': email},
+                  );
+                  if (!ctx.mounted) return;
+                  if (res['success'] == true) {
+                    Navigator.pop(ctx);
+                    _showSnackBar(
+                        res['message'] ?? 'Access granted successfully',
+                        isError: false);
+                    _loadProfile();
+                  } else {
+                    setSheet(() {
+                      isGranting = false;
+                      errorMsg = res['message'] ?? 'Failed to grant access';
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _approveRequest(String requestId, String doctorName) async {
@@ -260,10 +360,10 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     );
   }
 
-  void _addChip(List<String> list, String value) {
+  void _addChip(List<String> list, String value, TextEditingController ctrl) {
     if (value.trim().isEmpty || list.contains(value.trim())) return;
     setState(() => list.add(value.trim()));
-    _chipInputCtrl.clear();
+    ctrl.clear();
   }
 
   @override
@@ -404,11 +504,11 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
             const SizedBox(height: 24),
             _sectionHeader(Icons.medical_information_outlined, 'Medical Information'),
             const SizedBox(height: 8),
-            _chipSection('Allergies', _allergies, 'Add allergy...'),
+            _chipSection('Allergies', _allergies, 'Add allergy...', _allergyCtrl),
             const SizedBox(height: 12),
-            _chipSection('Current Medications', _medications, 'Add medication...'),
+            _chipSection('Current Medications', _medications, 'Add medication...', _medicationCtrl),
             const SizedBox(height: 12),
-            _chipSection('Chronic Conditions', _conditions, 'Add condition...'),
+            _chipSection('Chronic Conditions', _conditions, 'Add condition...', _conditionCtrl),
             const SizedBox(height: 24),
             _sectionHeader(Icons.emergency_outlined, 'Emergency Contact'),
             const SizedBox(height: 12),
@@ -449,57 +549,84 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
 
   Widget _buildAccessTab() {
     final requests = _profile?.accessRequests ?? [];
-    if (requests.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.lock_outline,
-                  size: 64, color: Colors.white.withValues(alpha: 0.2)),
-              const SizedBox(height: 16),
-              const Text('No Access Requests',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text(
-                'Doctors who request access to your health profile will appear here. You can approve or reject each request.',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final pending  = requests.where((r) => r.isPending).toList();
     final approved = requests.where((r) => r.isApproved).toList();
     final others   = requests.where((r) => r.isRejected || r.isRevoked).toList();
 
-    return RefreshIndicator(
-      color: AppColors.accent,
-      backgroundColor: AppColors.bgCard,
-      onRefresh: _loadProfile,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (pending.isNotEmpty) ...[
-            _requestSectionHeader('Pending Requests', Colors.orange, pending.length),
-            ...pending.map((r) => _requestCard(r, showActions: true)),
-            const SizedBox(height: 16),
-          ],
-          if (approved.isNotEmpty) ...[
-            _requestSectionHeader('Approved Doctors', AppColors.ecgGreen, approved.length),
-            ...approved.map((r) => _requestCard(r, showRevoke: true)),
-            const SizedBox(height: 16),
-          ],
-          if (others.isNotEmpty) ...[
-            _requestSectionHeader('Previous Requests', AppColors.textSecondary, others.length),
-            ...others.map((r) => _requestCard(r)),
-          ],
-        ],
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _grantAccessToDoctor,
+              icon: const Icon(Icons.person_add_outlined, size: 18),
+              label: const Text('Give Access to a Doctor',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: requests.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock_outline,
+                            size: 64, color: Colors.white.withValues(alpha: 0.2)),
+                        const SizedBox(height: 16),
+                        const Text('No Doctors Have Access',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Tap the button above to give a doctor access to your health profile. You can revoke access at any time.',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : RefreshIndicator(
+                  color: AppColors.accent,
+                  backgroundColor: AppColors.bgCard,
+                  onRefresh: _loadProfile,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    children: [
+                      if (pending.isNotEmpty) ...[
+                        _requestSectionHeader('Pending', Colors.orange, pending.length),
+                        ...pending.map((r) => _requestCard(r, showActions: true)),
+                        const SizedBox(height: 16),
+                      ],
+                      if (approved.isNotEmpty) ...[
+                        _requestSectionHeader('Approved Doctors', AppColors.ecgGreen, approved.length),
+                        ...approved.map((r) => _requestCard(r, showRevoke: true)),
+                        const SizedBox(height: 16),
+                      ],
+                      if (others.isNotEmpty) ...[
+                        _requestSectionHeader('Previous', AppColors.textSecondary, others.length),
+                        ...others.map((r) => _requestCard(r)),
+                      ],
+                    ],
+                  ),
+                ),
+        ),
+      ],
     );
   }
 
@@ -859,7 +986,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     );
   }
 
-  Widget _chipSection(String label, List<String> list, String hint) {
+  Widget _chipSection(String label, List<String> list, String hint,
+      TextEditingController ctrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -894,7 +1022,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
           children: [
             Expanded(
               child: TextField(
-                controller: _chipInputCtrl,
+                controller: ctrl,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
                   hintText: hint,
@@ -921,12 +1049,12 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                   filled: true,
                   fillColor: AppColors.bgSurface,
                 ),
-                onSubmitted: (v) => _addChip(list, v),
+                onSubmitted: (v) => _addChip(list, v, ctrl),
               ),
             ),
             const SizedBox(width: 8),
             GestureDetector(
-              onTap: () => _addChip(list, _chipInputCtrl.text),
+              onTap: () => _addChip(list, ctrl.text, ctrl),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(

@@ -242,9 +242,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _firstNameController,
                                 hintText: 'First name',
                                 prefixIcon: Icons.person_outlined,
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Required'
-                                    : null,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) { return 'Required'; }
+                                  if (!RegExp(r"^[a-zA-Z][a-zA-Z\s'\-]*$").hasMatch(v.trim())) {
+                                    return 'Letters, spaces, hyphens and apostrophes only';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -253,9 +257,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _lastNameController,
                                 hintText: 'Last name',
                                 prefixIcon: Icons.person_outlined,
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Required'
-                                    : null,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) { return 'Required'; }
+                                  if (!RegExp(r"^[a-zA-Z][a-zA-Z\s'\-]*$").hasMatch(v.trim())) {
+                                    return 'Letters, spaces, hyphens and apostrophes only';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
                           ],
@@ -301,6 +309,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hintText: 'Phone number (optional)',
                           prefixIcon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) { return null; }
+                            if (!RegExp(r'^[0-9+\-\s()]+$').hasMatch(v.trim())) {
+                              return 'Digits, spaces, +, -, and () only';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 14),
                         Text(

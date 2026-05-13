@@ -452,19 +452,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Icons.person_outline, 'Personal Information'),
                         const SizedBox(height: 12),
                         _field(_firstNameCtrl, 'First Name',
-                            validator: (v) =>
-                                v == null || v.trim().isEmpty
-                                    ? 'First name is required'
-                                    : null),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) { return 'First name is required'; }
+                              if (!RegExp(r"^[a-zA-Z][a-zA-Z\s'\-]*$").hasMatch(v.trim())) {
+                                return 'Letters, spaces, hyphens and apostrophes only';
+                              }
+                              return null;
+                            }),
                         const SizedBox(height: 12),
                         _field(_lastNameCtrl, 'Last Name',
-                            validator: (v) =>
-                                v == null || v.trim().isEmpty
-                                    ? 'Last name is required'
-                                    : null),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) { return 'Last name is required'; }
+                              if (!RegExp(r"^[a-zA-Z][a-zA-Z\s'\-]*$").hasMatch(v.trim())) {
+                                return 'Letters, spaces, hyphens and apostrophes only';
+                              }
+                              return null;
+                            }),
                         const SizedBox(height: 12),
                         _field(_phoneCtrl, 'Phone Number',
-                            keyboardType: TextInputType.phone),
+                            keyboardType: TextInputType.phone,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) { return null; }
+                              if (!RegExp(r'^[0-9+\-\s()]+$').hasMatch(v.trim())) {
+                                return 'Digits, spaces, +, -, and () only';
+                              }
+                              return null;
+                            }),
                         const SizedBox(height: 12),
                         // Gender — fully controlled, drives profile picture default
                         Container(

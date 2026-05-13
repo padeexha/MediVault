@@ -36,103 +36,6 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
     }
   }
 
-  Future<void> _requestAccess() async {
-    final emailCtrl = TextEditingController();
-    bool isRequesting = false;
-    String? errorMsg;
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.bgCard,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40, height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                alignment: Alignment.center,
-              ),
-              const Text('Request Health Profile Access',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text(
-                "Enter the patient's email address to request access to their health profile. The patient will need to approve your request.",
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Colors.white),
-                decoration: darkInputDecoration("Patient's email address",
-                    prefixIcon: Icons.email_outlined),
-              ),
-              if (errorMsg != null) ...[
-                const SizedBox(height: 8),
-                Text(errorMsg!,
-                    style: const TextStyle(
-                        color: AppColors.errorRed, fontSize: 13)),
-              ],
-              const SizedBox(height: 20),
-              DarkButton(
-                label: 'Send Request',
-                icon: Icons.send_outlined,
-                isLoading: isRequesting,
-                onPressed: () async {
-                  final email = emailCtrl.text.trim();
-                  if (email.isEmpty) {
-                    setSheet(() => errorMsg = 'Please enter an email address');
-                    return;
-                  }
-                  setSheet(() {
-                    isRequesting = true;
-                    errorMsg = null;
-                  });
-                  final res = await ApiService.post(
-                    Constants.healthProfileRequestAccess,
-                    {'patient_email': email},
-                  );
-                  if (!ctx.mounted) return;
-                  if (res['success'] == true) {
-                    Navigator.pop(ctx);
-                    _showSnackBar(
-                        'Access request sent! Waiting for patient approval.',
-                        isError: false);
-                    _loadAccess();
-                  } else {
-                    setSheet(() {
-                      isRequesting = false;
-                      errorMsg = res['message'] ?? 'Failed to send request';
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _viewProfile(
       String patientId, String patientName) async {
     setState(() => _isLoading = true);
@@ -201,20 +104,6 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: darkGlassAppBar(title: 'Patient Health Profiles'),
-      floatingActionButton: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-              colors: [AppColors.accentBlue, AppColors.accent]),
-        ),
-        child: FloatingActionButton(
-          onPressed: _requestAccess,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          tooltip: 'Request access to a patient profile',
-          child: const Icon(Icons.person_add_outlined, color: Colors.white),
-        ),
-      ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.accent))
@@ -229,14 +118,14 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
                             size: 72,
                             color: Colors.white.withValues(alpha: 0.15)),
                         const SizedBox(height: 20),
-                        const Text('No Health Profiles Yet',
+                        const Text('No Health Profiles Shared',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         const Text(
-                          'Tap the + button to request access to a patient\'s health profile. The patient must approve before you can view it.',
+                          'No patients have shared their health profile with you yet. Patients control access to their own health profiles.',
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 13),
                           textAlign: TextAlign.center,
