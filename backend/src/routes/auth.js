@@ -38,7 +38,7 @@ const sendOtpEmail = async (user, otp) => {
   const client = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
   await client.transactionalEmails.sendTransacEmail({
-    sender: { email: 'medivault41@gmail.com', name: 'MediVault' },
+    sender: { email: 'medivaultlk@gmail.com', name: 'MediVault' },
     to: [{ email: user.email, name: `${user.first_name} ${user.last_name}` }],
     subject: 'MediVault — Your Verification Code',
     htmlContent: `<!DOCTYPE html>
@@ -99,7 +99,7 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
   const client = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
   await client.transactionalEmails.sendTransacEmail({
-    sender: { email: 'medivault41@gmail.com', name: 'MediVault' },
+    sender: { email: 'medivaultlk@gmail.com', name: 'MediVault' },
     to: [{ email: user.email }],
     subject: 'MediVault — Password Reset',
     htmlContent: `<!DOCTYPE html>
