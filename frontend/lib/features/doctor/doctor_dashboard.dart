@@ -87,9 +87,10 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       extendBodyBehindAppBar: true,
       appBar: darkGlassAppBar(
+        context: context,
         title: 'MediVault',
         showLogo: true,
         actions: [
@@ -116,7 +117,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               child: CircularProgressIndicator(color: AppColors.accent))
           : RefreshIndicator(
               color: AppColors.accent,
-              backgroundColor: AppColors.bgCard,
+              backgroundColor: AppThemeColors.of(context).bgCard,
               onRefresh: _loadData,
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -130,9 +131,9 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                         const SizedBox(height: 16),
                         _statsRow(),
                         const SizedBox(height: 24),
-                        const Text('Patient Records',
+                        Text('Patient Records',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 14),
@@ -164,14 +165,14 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                   Text(
                     'Welcome, Dr.',
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                         fontSize: 13),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _doctorName,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.bold),
                   ),
@@ -192,14 +193,14 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(Icons.local_hospital_outlined,
-                            size: 13, color: AppColors.textSecondary),
+                        Icon(Icons.local_hospital_outlined,
+                            size: 13, color: AppThemeColors.of(context).textSecondary),
                         const SizedBox(width: 5),
                         Flexible(
                           child: Text(
                             _organisation,
-                            style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 12),
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textSecondary, fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -241,7 +242,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
+        color: AppThemeColors.of(context).bgSurface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
@@ -257,13 +258,13 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
           ),
           const SizedBox(height: 8),
           Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           Text(label,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 11)),
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textSecondary, fontSize: 11)),
         ],
       ),
     );
@@ -293,22 +294,22 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Shared Records',
+                  Text('Shared Records',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppThemeColors.of(context).textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
                   const SizedBox(height: 3),
                   Text(
                     '$_totalRecords record${_totalRecords == 1 ? '' : 's'} from $_totalPatients patient${_totalPatients == 1 ? '' : 's'}',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textSecondary, fontSize: 12),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 14, color: AppColors.textSecondary),
+            Icon(Icons.arrow_forward_ios,
+                size: 14, color: AppThemeColors.of(context).textSecondary),
           ],
         ),
       ),
@@ -343,24 +344,24 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Patient Health Profiles',
+                  Text('Patient Health Profiles',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppThemeColors.of(context).textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
                   const SizedBox(height: 3),
-                  const Text(
+                  Text(
                     'Request & view patient health profiles',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: AppThemeColors.of(context).textSecondary,
                       fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 14, color: AppColors.textSecondary),
+            Icon(Icons.arrow_forward_ios,
+                size: 14, color: AppThemeColors.of(context).textSecondary),
           ],
         ),
       ),
@@ -377,14 +378,14 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             color: AppColors.accentBlue.withValues(alpha: 0.2)),
       ),
       child: Row(
-        children: const [
-          Icon(Icons.info_outline, color: AppColors.accent, size: 18),
-          SizedBox(width: 12),
+        children: [
+          const Icon(Icons.info_outline, color: AppColors.accent, size: 18),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               'You can only view records and health profiles that patients have explicitly shared with you.',
               style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 12),
+                  color: AppThemeColors.of(context).textSecondary, fontSize: 12),
             ),
           ),
         ],

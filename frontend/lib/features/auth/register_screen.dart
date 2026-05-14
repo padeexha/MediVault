@@ -90,6 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _roleButton(String role, String label, IconData icon) {
     final selected = _selectedRole == role;
+    final c = AppThemeColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedRole = role),
@@ -99,25 +100,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.accentBlue.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.05),
+                : c.textPrimary.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
                   ? AppColors.accentBlue
-                  : Colors.white.withValues(alpha: 0.15),
+                  : c.textPrimary.withValues(alpha: 0.15),
               width: selected ? 1.5 : 1,
             ),
           ),
           child: Column(
             children: [
               Icon(icon,
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? c.textPrimary : c.textSecondary,
                   size: 28),
               const SizedBox(height: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? c.textPrimary : c.textSecondary,
                   fontWeight:
                       selected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -131,6 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _genderButton(String gender, String label, IconData icon) {
     final selected = _selectedGender == gender;
+    final c = AppThemeColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedGender = gender),
@@ -140,12 +142,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.accentBlue.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.05),
+                : c.textPrimary.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
                   ? AppColors.accentBlue
-                  : Colors.white.withValues(alpha: 0.15),
+                  : c.textPrimary.withValues(alpha: 0.15),
               width: selected ? 1.5 : 1,
             ),
           ),
@@ -154,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon,
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? c.textPrimary : c.textSecondary,
                   size: 20),
               const SizedBox(width: 6),
               Flexible(
@@ -163,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13,
-                    color: selected ? Colors.white : AppColors.textSecondary,
+                    color: selected ? c.textPrimary : c.textSecondary,
                     fontWeight:
                         selected ? FontWeight.bold : FontWeight.normal,
                   ),
@@ -178,6 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     return Scaffold(
       body: ColorfulBackground(
         child: SafeArea(
@@ -193,15 +196,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: GlassCard(
                         borderRadius: 12,
                         padding: const EdgeInsets.all(10),
-                        child: const Icon(Icons.arrow_back,
-                            color: Colors.white, size: 20),
+                        child: Icon(Icons.arrow_back,
+                            color: c.textPrimary, size: 20),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
+                    Text(
                       'Create Account',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: c.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -219,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           'I am a',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.8),
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                           ),
@@ -291,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               _obscurePassword
                                   ? Icons.visibility_off_outlined
                                   : Icons.visibility_outlined,
-                              color: Colors.white.withValues(alpha: 0.55),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                               size: 20,
                             ),
                             onPressed: () => setState(() =>
@@ -321,7 +324,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           'Gender',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.8),
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                           ),
@@ -372,16 +375,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Text(
                               'Already have an account? ',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.65),
+                                color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.65),
                                 fontSize: 13,
                               ),
                             ),
                             GestureDetector(
                               onTap: () => Navigator.pop(context),
-                              child: const Text(
+                              child: Text(
                                 'Sign In',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppThemeColors.of(context).textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),

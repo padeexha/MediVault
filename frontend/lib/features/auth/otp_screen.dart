@@ -87,10 +87,10 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'Check your email',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppThemeColors.of(context).textPrimary,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -99,7 +99,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         Text(
                           'We sent a verification link to',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.65),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.65),
                             fontSize: 14,
                           ),
                           textAlign: TextAlign.center,
@@ -118,16 +118,16 @@ class _OtpScreenState extends State<OtpScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.07),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.07),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12),
                             ),
                           ),
                           child: Text(
                             'Open the email and tap "Verify My Account". Once verified, come back and sign in.',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.75),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.75),
                               fontSize: 13,
                               height: 1.5,
                             ),
@@ -150,7 +150,7 @@ class _OtpScreenState extends State<OtpScreen> {
                             ? Text(
                                 'Resend email in $_resendCountdown s',
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.5),
+                                  color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.5),
                                   fontSize: 13,
                                 ),
                               )

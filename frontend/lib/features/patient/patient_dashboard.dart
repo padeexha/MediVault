@@ -132,9 +132,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       extendBodyBehindAppBar: true,
       appBar: darkGlassAppBar(
+        context: context,
         title: 'MediVault',
         showLogo: true,
         actions: [
@@ -161,7 +162,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               child: CircularProgressIndicator(color: AppColors.accent))
           : RefreshIndicator(
               color: AppColors.accent,
-              backgroundColor: AppColors.bgCard,
+              backgroundColor: AppThemeColors.of(context).bgCard,
               onRefresh: _loadData,
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -179,9 +180,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           _profileCompletionCard(),
                         ],
                         const SizedBox(height: 24),
-                        const Text('Quick Actions',
+                        Text('Quick Actions',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 14),
@@ -191,9 +192,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Recently Added',
+                              Text('Recently Added',
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: AppThemeColors.of(context).textPrimary,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold)),
                               TextButton(
@@ -236,7 +237,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           tooltip: 'Upload record',
-          child: const Icon(Icons.add, color: Colors.white),
+          child: Icon(Icons.add, color: AppThemeColors.of(context).textPrimary),
         ),
       ),
     );
@@ -256,14 +257,14 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   Text(
                     'Welcome back,',
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                         fontSize: 13),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _userName.isNotEmpty ? _userName : 'Patient',
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.bold),
                   ),
@@ -318,7 +319,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
+        color: AppThemeColors.of(context).bgSurface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
@@ -334,13 +335,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
           ),
           const SizedBox(height: 8),
           Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           Text(label,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 11)),
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textSecondary, fontSize: 11)),
         ],
       ),
     );
@@ -366,10 +367,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 const Icon(Icons.account_circle_outlined,
                     color: Colors.orange, size: 18),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text('Complete your profile',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppThemeColors.of(context).textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 14)),
                 ),
@@ -395,7 +396,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             Text(
               'Add your date of birth, address, and other details',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.45), fontSize: 11),
+                  color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.45), fontSize: 11),
             ),
           ],
         ),
@@ -475,8 +476,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(record.title,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textPrimary,
                           fontWeight: FontWeight.w600,
                           fontSize: 14),
                       maxLines: 1,
@@ -488,16 +489,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       const SizedBox(width: 6),
                       Text(
                         _formatDate(record.uploadDate),
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 11),
+                        style: TextStyle(
+                            color: AppThemeColors.of(context).textSecondary, fontSize: 11),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right,
-                color: AppColors.textSecondary, size: 18),
+            Icon(Icons.chevron_right,
+                color: AppThemeColors.of(context).textSecondary, size: 18),
           ],
         ),
       ),
@@ -533,7 +534,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       case 'prescription':     return const Color(0xFF1D9E75);
       case 'radiology':        return const Color(0xFF854F0B);
       case 'discharge_summary':return const Color(0xFF993C1D);
-      default:                 return AppColors.textSecondary;
+      default:                 return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -586,8 +587,8 @@ class _ActionCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               item.label,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textPrimary,
                   fontWeight: FontWeight.w600,
                   fontSize: 11),
               textAlign: TextAlign.center,

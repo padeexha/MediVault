@@ -112,7 +112,7 @@ class _SearchScreenState extends State<SearchScreen> {
       case 'prescription': return const Color(0xFF1D9E75);
       case 'radiology': return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default: return AppColors.textSecondary;
+      default: return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -129,8 +129,9 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       appBar: darkGlassAppBar(
+        context: context,
         title: 'Search Records',
         actions: [
           if (_hasSearched || _dateFrom != null || _dateTo != null)
@@ -152,8 +153,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: darkInputDecoration('Search by title...',
+                        style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                        decoration: darkInputDecoration('Search by title...', context: context,
                             prefixIcon: Icons.search),
                         onSubmitted: (_) => _search(),
                       ),
@@ -208,7 +209,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               style: TextStyle(
                                 color: selected
                                     ? Colors.white
-                                    : AppColors.textSecondary,
+                                    : AppThemeColors.of(context).textSecondary,
                                 fontSize: 13,
                                 fontWeight: selected
                                     ? FontWeight.w600
@@ -234,18 +235,18 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding:
                             const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: AppColors.bgSurface,
+                          color: AppThemeColors.of(context).bgSurface,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.1)),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.1)),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSort,
                             isExpanded: true,
-                            dropdownColor: AppColors.bgCard,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 12),
+                            dropdownColor: AppThemeColors.of(context).bgCard,
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textPrimary, fontSize: 12),
                             items: _sortOptions.map((opt) {
                               return DropdownMenuItem(
                                 value: opt['value'],
@@ -277,17 +278,17 @@ class _SearchScreenState extends State<SearchScreen> {
                           children: [
                             Icon(Icons.search,
                                 size: 64,
-                                color: Colors.white.withValues(alpha: 0.15)),
+                                color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.15)),
                             const SizedBox(height: 16),
-                            const Text('Search your medical records',
+                            Text('Search your medical records',
                                 style: TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: AppThemeColors.of(context).textSecondary,
                                     fontSize: 16)),
                             const SizedBox(height: 6),
-                            const Text(
+                            Text(
                                 'Filter by title, category, or date',
                                 style: TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: AppThemeColors.of(context).textSecondary,
                                     fontSize: 13)),
                           ],
                         ),
@@ -302,9 +303,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                     color:
                                         Colors.white.withValues(alpha: 0.15)),
                                 const SizedBox(height: 16),
-                                const Text('No records found',
+                                Text('No records found',
                                     style: TextStyle(
-                                        color: AppColors.textSecondary,
+                                        color: AppThemeColors.of(context).textSecondary,
                                         fontSize: 16)),
                               ],
                             ),
@@ -338,8 +339,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                         color: color),
                                   ),
                                   title: Text(record.title,
-                                      style: const TextStyle(
-                                          color: Colors.white,
+                                      style: TextStyle(
+                                          color: AppThemeColors.of(context).textPrimary,
                                           fontWeight: FontWeight.bold)),
                                   subtitle: Column(
                                     crossAxisAlignment:
@@ -347,14 +348,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                     children: [
                                       const SizedBox(height: 4),
                                       Text(record.categoryDisplay,
-                                          style: const TextStyle(
-                                              color: AppColors.textSecondary,
+                                          style: TextStyle(
+                                              color: AppThemeColors.of(context).textSecondary,
                                               fontSize: 12)),
                                       Text(
                                         DateFormat('dd/MM/yyyy')
                                             .format(record.uploadDate),
-                                        style: const TextStyle(
-                                            color: AppColors.textSecondary,
+                                        style: TextStyle(
+                                            color: AppThemeColors.of(context).textSecondary,
                                             fontSize: 11),
                                       ),
                                     ],
@@ -376,7 +377,7 @@ class _SearchScreenState extends State<SearchScreen> {
         height: 44,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: AppColors.bgSurface,
+          color: AppThemeColors.of(context).bgSurface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: date != null
@@ -390,13 +391,13 @@ class _SearchScreenState extends State<SearchScreen> {
                 size: 13,
                 color: date != null
                     ? AppColors.accent
-                    : AppColors.textSecondary),
+                    : AppThemeColors.of(context).textSecondary),
             const SizedBox(width: 6),
             Text(
               date != null ? DateFormat('dd/MM/yy').format(date) : hint,
               style: TextStyle(
                 fontSize: 12,
-                color: date != null ? Colors.white : AppColors.textSecondary,
+                color: date != null ? Colors.white : AppThemeColors.of(context).textSecondary,
               ),
             ),
           ],

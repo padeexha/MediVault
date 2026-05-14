@@ -6,92 +6,137 @@ import 'features/patient/patient_dashboard.dart';
 import 'features/doctor/doctor_dashboard.dart';
 import 'core/theme/app_theme.dart';
 
+// ── Theme controller ──────────────────────────────────────────────────────────
+class ThemeController {
+  static final ValueNotifier<ThemeMode> themeMode =
+      ValueNotifier(ThemeMode.dark);
+
+  static Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = prefs.getBool('isDarkMode') ?? true;
+    themeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  static Future<void> toggle() async {
+    final next = themeMode.value == ThemeMode.dark
+        ? ThemeMode.light
+        : ThemeMode.dark;
+    themeMode.value = next;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', next == ThemeMode.dark);
+  }
+
+  static bool get isDark => themeMode.value == ThemeMode.dark;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ThemeController.init();
   runApp(const MediVaultApp());
 }
 
 class MediVaultApp extends StatelessWidget {
   const MediVaultApp({super.key});
 
+  static ThemeData _buildTheme(Brightness brightness) {
+    final c = brightness == Brightness.dark
+        ? AppThemeColors.dark
+        : AppThemeColors.light;
+
+    return ThemeData(
+      brightness: brightness,
+      scaffoldBackgroundColor: c.bg,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: AppColors.accentBlue,
+        onPrimary: Colors.white,
+        secondary: AppColors.accent,
+        onSecondary: Colors.white,
+        surface: c.bgCard,
+        onSurface: c.textPrimary,
+        error: AppColors.errorRed,
+        onError: Colors.white,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: c.textPrimary,
+        iconTheme: IconThemeData(color: c.textPrimary),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.accentBlue,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: c.inputFill,
+        labelStyle: TextStyle(color: c.textSecondary),
+        hintStyle: TextStyle(color: c.textPrimary.withValues(alpha: 0.35)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: c.inputBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: c.inputBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide:
+              const BorderSide(color: AppColors.accentBlue, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.errorRed),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.errorRed),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: c.bgCard,
+        titleTextStyle: TextStyle(
+            color: c.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+        contentTextStyle: TextStyle(color: c.textSecondary),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: c.bgCard,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: c.bgSurface,
+        contentTextStyle: TextStyle(color: c.textPrimary),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        behavior: SnackBarBehavior.floating,
+      ),
+      dividerColor: c.divider,
+      useMaterial3: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MediVault',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.bg,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.accentBlue,
-          secondary: AppColors.accent,
-          surface: AppColors.bgCard,
-          error: AppColors.errorRed,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          foregroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.white),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accentBlue,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.bgSurface,
-          labelStyle: const TextStyle(color: AppColors.textSecondary),
-          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35)),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF1E2D40)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF1E2D40)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide:
-                const BorderSide(color: AppColors.accentBlue, width: 1.5),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.errorRed),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.errorRed),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        dialogTheme: const DialogThemeData(
-          backgroundColor: AppColors.bgCard,
-          titleTextStyle: TextStyle(
-              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          contentTextStyle: TextStyle(color: AppColors.textSecondary),
-        ),
-        bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: AppColors.bgCard,
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: AppColors.bgSurface,
-          contentTextStyle: const TextStyle(color: Colors.white),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          behavior: SnackBarBehavior.floating,
-        ),
-        useMaterial3: true,
-      ),
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.themeMode,
+      builder: (_, mode, _) {
+        return MaterialApp(
+          title: 'MediVault',
+          debugShowCheckedModeBanner: false,
+          themeMode: mode,
+          theme: _buildTheme(Brightness.light),
+          darkTheme: _buildTheme(Brightness.dark),
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }
@@ -127,7 +172,7 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2400));
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    final role = prefs.getString('role') ?? '';
+    final role  = prefs.getString('role') ?? '';
 
     if (!mounted) return;
 
@@ -153,8 +198,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     return Scaffold(
-      body: DarkBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Center(
             child: Padding(
@@ -167,10 +213,9 @@ class _SplashScreenState extends State<SplashScreen>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 36, vertical: 48),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.07),
+                      color: c.glass,
                       borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.14)),
+                      border: Border.all(color: c.glassBorder),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -180,7 +225,7 @@ class _SplashScreenState extends State<SplashScreen>
                         Text(
                           'Your health records, secured.',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.65),
+                            color: c.textPrimary.withValues(alpha: 0.65),
                             fontSize: 14,
                           ),
                           textAlign: TextAlign.center,
@@ -192,7 +237,7 @@ class _SplashScreenState extends State<SplashScreen>
                             height: 5,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: c.textPrimary.withValues(alpha: 0.1),
                             ),
                             child: FractionallySizedBox(
                               alignment: Alignment.centerLeft,

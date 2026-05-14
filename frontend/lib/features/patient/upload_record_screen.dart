@@ -85,13 +85,13 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
     if (_selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: const [
-            Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 18),
-            SizedBox(width: 10),
+          content: Row(children: [
+            const Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 18),
+            const SizedBox(width: 10),
             Text('Please select a file to upload',
-                style: TextStyle(color: Colors.white)),
+                style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
           ]),
-          backgroundColor: AppColors.bgSurface,
+          backgroundColor: AppThemeColors.of(context).bgSurface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12)),
@@ -128,10 +128,10 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
             const SizedBox(width: 10),
             Expanded(
               child: Text(response['message'] ?? 'Upload failed',
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
             ),
           ]),
-          backgroundColor: AppColors.bgSurface,
+          backgroundColor: AppThemeColors.of(context).bgSurface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12)),
@@ -150,8 +150,9 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       appBar: darkGlassAppBar(
+        context: context,
         title: _uploadSuccess ? 'Upload Complete' : 'Upload Record',
       ),
       body: _uploadSuccess
@@ -163,7 +164,7 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
   // ── Success screen ────────────────────────────────────────────────────────
   Widget _successScreen() {
     final catColor =
-        _categoryColors[_uploadedCategory] ?? AppColors.textSecondary;
+        _categoryColors[_uploadedCategory] ?? AppThemeColors.of(context).textSecondary;
 
     return Center(
       child: Padding(
@@ -190,14 +191,14 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Upload Successful!',
+            Text('Upload Successful!',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppThemeColors.of(context).textPrimary,
                     fontSize: 24,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text('Your medical record has been securely stored.',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            Text('Your medical record has been securely stored.',
+                style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 14),
                 textAlign: TextAlign.center),
             const SizedBox(height: 28),
             // Record summary card
@@ -208,10 +209,10 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
+                    color: AppThemeColors.of(context).divider,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.12)),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12)),
                   ),
                   child: Row(
                     children: [
@@ -230,8 +231,8 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(_uploadedTitle,
-                                style: const TextStyle(
-                                    color: Colors.white,
+                                style: TextStyle(
+                                    color: AppThemeColors.of(context).textPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16),
                                 maxLines: 2,
@@ -281,7 +282,7 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
               label: const Text('Back to Dashboard'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                side: BorderSide(color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.25)),
                 minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -304,8 +305,8 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
           children: [
             TextFormField(
               controller: _titleCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: darkInputDecoration('Record title',
+              style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+              decoration: darkInputDecoration('Record title', context: context,
                   prefixIcon: Icons.title),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Please enter a title' : null,
@@ -313,9 +314,9 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: _selectedCategory,
-              dropdownColor: AppColors.bgCard,
-              style: const TextStyle(color: Colors.white),
-              decoration: darkInputDecoration('Category',
+              dropdownColor: AppThemeColors.of(context).bgCard,
+              style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+              decoration: darkInputDecoration('Category', context: context,
                   prefixIcon: Icons.category),
               items: _categories
                   .map((c) =>
@@ -329,22 +330,22 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
             TextFormField(
               controller: _notesCtrl,
               maxLines: 3,
-              style: const TextStyle(color: Colors.white),
-              decoration: darkInputDecoration('Notes (optional)',
+              style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+              decoration: darkInputDecoration('Notes (optional)', context: context,
                   prefixIcon: Icons.notes),
             ),
             const SizedBox(height: 24),
             Row(
               children: [
-                const Text('Select File',
+                Text('Select File',
                     style: TextStyle(
-                        color: Colors.white,
+                        color: AppThemeColors.of(context).textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
                 const Spacer(),
                 Text('PDF, JPEG, PNG — max 20 MB',
                     style: TextStyle(
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        color: AppThemeColors.of(context).textSecondary.withValues(alpha: 0.7),
                         fontSize: 11)),
               ],
             ),
@@ -356,7 +357,7 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
+                  color: AppThemeColors.of(context).bgSurface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: _selectedFile != null
@@ -374,7 +375,7 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                       size: 48,
                       color: _selectedFile != null
                           ? AppColors.ecgGreen
-                          : AppColors.textSecondary,
+                          : AppThemeColors.of(context).textSecondary,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -382,7 +383,7 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                       style: TextStyle(
                         color: _selectedFile != null
                             ? Colors.white
-                            : AppColors.textSecondary,
+                            : AppThemeColors.of(context).textSecondary,
                         fontWeight: _selectedFile != null
                             ? FontWeight.bold
                             : FontWeight.normal,
@@ -397,7 +398,7 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                       Text(
                         'Tap to change',
                         style: TextStyle(
-                            color: AppColors.textSecondary
+                            color: AppThemeColors.of(context).textSecondary
                                 .withValues(alpha: 0.6),
                             fontSize: 11),
                       ),

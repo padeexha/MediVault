@@ -197,8 +197,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textPrimary,
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   if (spec.isNotEmpty)
@@ -207,8 +207,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                             color: AppColors.accentBlue, fontSize: 12)),
                   if (org.isNotEmpty)
                     Text(org,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 11)),
+                        style: TextStyle(
+                            color: AppThemeColors.of(context).textSecondary, fontSize: 11)),
                 ],
               ),
             ),
@@ -298,21 +298,21 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
+        backgroundColor: AppThemeColors.of(context).bgCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          side: BorderSide(color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.1)),
         ),
         title: Text(title,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: AppThemeColors.of(context).textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
         content: Text(content,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+            style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 14)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Cancel',
+                style: TextStyle(color: AppThemeColors.of(context).textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -339,10 +339,10 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
             Icon(isError ? Icons.error_outline : Icons.check_circle_outline,
                 color: isError ? Colors.redAccent : AppColors.ecgGreen, size: 18),
             const SizedBox(width: 10),
-            Expanded(child: Text(msg, style: const TextStyle(color: Colors.white))),
+            Expanded(child: Text(msg, style: TextStyle(color: AppThemeColors.of(context).textPrimary))),
           ],
         ),
-        backgroundColor: AppColors.bgSurface,
+        backgroundColor: AppThemeColors.of(context).bgSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -361,8 +361,9 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     final approvedCount = _profile?.approvedDoctorCount ?? 0;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       appBar: darkGlassAppBar(
+        context: context,
         title: 'Health Profile',
         actions: [
           if (!_isEditing)
@@ -377,8 +378,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                 setState(() => _isEditing = false);
                 if (_profile != null) _populateForm(_profile!);
               },
-              child: const Text('Cancel',
-                  style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Cancel',
+                  style: TextStyle(color: AppThemeColors.of(context).textSecondary)),
             ),
           ],
         ],
@@ -390,7 +391,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                 TabBar(
                   controller: _tabCtrl,
                   labelColor: Colors.white,
-                  unselectedLabelColor: AppColors.textSecondary,
+                  unselectedLabelColor: AppThemeColors.of(context).textSecondary,
                   indicatorColor: AppColors.accentBlue,
                   tabs: [
                     const Tab(text: 'Profile'),
@@ -409,8 +410,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text('$pendingCount',
-                                  style: const TextStyle(
-                                      color: Colors.white,
+                                  style: TextStyle(
+                                      color: AppThemeColors.of(context).textPrimary,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold)),
                             ),
@@ -434,7 +435,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       bottomNavigationBar: _isEditing
           ? Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-              color: AppColors.bgCard,
+              color: AppThemeColors.of(context).bgCard,
               child: DarkButton(
                 label: 'Save Health Profile',
                 icon: Icons.save_outlined,
@@ -551,9 +552,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
             children: [
               TextField(
                 controller: _doctorSearchCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: darkInputDecoration(
-                  'Search doctors by name…',
+                style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                decoration: darkInputDecoration('Search doctors by name…', context: context,
                   prefixIcon: Icons.person_search_outlined,
                   suffix: _isDoctorSearchLoading
                       ? const SizedBox(
@@ -570,8 +570,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                                   _doctorSearchResults = [];
                                 });
                               },
-                              child: const Icon(Icons.close,
-                                  size: 16, color: AppColors.textSecondary))
+                              child: Icon(Icons.close,
+                                  size: 16, color: AppThemeColors.of(context).textSecondary))
                           : null,
                 ),
                 onChanged: _onDoctorSearch,
@@ -583,8 +583,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
                       'No doctors found for "$_doctorSearchQuery"',
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textSecondary, fontSize: 13),
                     ),
                   )
                 else
@@ -613,11 +613,11 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                       children: [
                         Icon(Icons.lock_outline,
                             size: 64,
-                            color: Colors.white.withValues(alpha: 0.2)),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.2)),
                         const SizedBox(height: 16),
-                        const Text('No Doctors Have Access',
+                        Text('No Doctors Have Access',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -625,8 +625,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                           _doctorSearchQuery.isEmpty
                               ? 'Search for a doctor above to give them access to your health profile.'
                               : 'Use the search results above to give a doctor access.',
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13),
+                          style: TextStyle(
+                              color: AppThemeColors.of(context).textSecondary, fontSize: 13),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -635,7 +635,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                 )
               : RefreshIndicator(
                   color: AppColors.accent,
-                  backgroundColor: AppColors.bgCard,
+                  backgroundColor: AppThemeColors.of(context).bgCard,
                   onRefresh: _loadProfile,
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -654,7 +654,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                       ],
                       if (others.isNotEmpty) ...[
                         _requestSectionHeader(
-                            'Previous', AppColors.textSecondary, others.length),
+                            'Previous', AppThemeColors.of(context).textSecondary, others.length),
                         ...others.map((r) => _requestCard(r)),
                       ],
                     ],
@@ -679,8 +679,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
           ),
           const SizedBox(width: 8),
           Text(title,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -703,8 +703,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       case 'pending':  statusColor = Colors.orange;        statusIcon = Icons.hourglass_empty; break;
       case 'approved': statusColor = AppColors.ecgGreen;   statusIcon = Icons.check_circle;    break;
       case 'rejected': statusColor = Colors.redAccent;     statusIcon = Icons.cancel;          break;
-      case 'revoked':  statusColor = AppColors.textSecondary; statusIcon = Icons.block;        break;
-      default:         statusColor = AppColors.textSecondary; statusIcon = Icons.info;
+      case 'revoked':  statusColor = AppThemeColors.of(context).textSecondary; statusIcon = Icons.block;        break;
+      default:         statusColor = AppThemeColors.of(context).textSecondary; statusIcon = Icons.info;
     }
 
     return DarkListCard(
@@ -730,12 +730,12 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(r.doctorName.isNotEmpty ? r.doctorName : 'Unknown Doctor',
-                          style: const TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          style: TextStyle(
+                              color: AppThemeColors.of(context).textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
                       if (r.doctorEmail.isNotEmpty)
                         Text(r.doctorEmail,
-                            style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 12)),
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textSecondary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -767,7 +767,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
               child: Text(
                 'Requested ${_formatDate(r.requestedAt)}',
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.35), fontSize: 11),
+                    color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.35), fontSize: 11),
               ),
             ),
             if (showActions) ...[
@@ -874,22 +874,22 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
+        color: AppThemeColors.of(context).bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        border: Border.all(color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.07)),
       ),
       child: Column(
         children: [
           Icon(Icons.health_and_safety_outlined,
               size: 56, color: AppColors.accentBlue.withValues(alpha: 0.6)),
           const SizedBox(height: 16),
-          const Text('No Health Profile Yet',
+          Text('No Health Profile Yet',
               style: TextStyle(
-                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  color: AppThemeColors.of(context).textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Create your health profile to store your medical information. Doctors you approve can view this profile.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 13),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -936,13 +936,13 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                       SizedBox(
                         width: 110,
                         child: Text(row.label,
-                            style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 13)),
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textSecondary, fontSize: 13)),
                       ),
                       Expanded(
                         child: Text(row.value,
-                            style: const TextStyle(
-                                color: Colors.white,
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 13)),
                       ),
@@ -976,23 +976,23 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
             ),
             if (p.allergies.isNotEmpty) ...[
               const SizedBox(height: 14),
-              const Text('Allergies',
+              Text('Allergies',
                   style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12)),
+                      color: AppThemeColors.of(context).textSecondary, fontSize: 12)),
               const SizedBox(height: 6),
               _chipDisplay(p.allergies, Colors.redAccent),
             ],
             if (p.currentMedications.isNotEmpty) ...[
               const SizedBox(height: 14),
-              const Text('Current Medications',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              Text('Current Medications',
+                  style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 12)),
               const SizedBox(height: 6),
               _chipDisplay(p.currentMedications, AppColors.accentBlue),
             ],
             if (p.chronicConditions.isNotEmpty) ...[
               const SizedBox(height: 14),
-              const Text('Chronic Conditions',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              Text('Chronic Conditions',
+                  style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 12)),
               const SizedBox(height: 6),
               _chipDisplay(p.chronicConditions, const Color(0xFF854F0B)),
             ],
@@ -1027,8 +1027,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                color: AppColors.textSecondary,
+            style: TextStyle(
+                color: AppThemeColors.of(context).textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
@@ -1041,11 +1041,11 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
               children: list
                   .map((item) => InputChip(
                         label: Text(item,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 12)),
-                        backgroundColor: AppColors.bgSurface,
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textPrimary, fontSize: 12)),
+                        backgroundColor: AppThemeColors.of(context).bgSurface,
                         side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.15)),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.15)),
                         deleteIconColor: Colors.white54,
                         onDeleted: () =>
                             setState(() => list.remove(item)),
@@ -1058,23 +1058,23 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
             Expanded(
               child: TextField(
                 controller: ctrl,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(color: AppThemeColors.of(context).textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   hintText: hint,
                   hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.3),
                       fontSize: 13),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.12)),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.12)),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -1082,7 +1082,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
                         color: AppColors.accentBlue, width: 1.5),
                   ),
                   filled: true,
-                  fillColor: AppColors.bgSurface,
+                  fillColor: AppThemeColors.of(context).inputFill,
                 ),
                 onSubmitted: (v) => _addChip(list, v, ctrl),
               ),
@@ -1127,8 +1127,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
-      decoration: darkInputDecoration(label),
+      style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+      decoration: darkInputDecoration(label, context: context),
     );
   }
 
@@ -1140,7 +1140,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
+        color: AppThemeColors.of(context).bgSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF1E2D40)),
       ),
@@ -1148,13 +1148,13 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       child: DropdownButton<String>(
         value: value,
         isExpanded: true,
-        dropdownColor: AppColors.bgCard,
-        style: const TextStyle(color: Colors.white, fontSize: 15),
+        dropdownColor: AppThemeColors.of(context).bgCard,
+        style: TextStyle(color: AppThemeColors.of(context).textPrimary, fontSize: 15),
         underline: const SizedBox.shrink(),
-        icon: const Icon(Icons.keyboard_arrow_down,
-            color: AppColors.textSecondary),
+        icon: Icon(Icons.keyboard_arrow_down,
+            color: AppThemeColors.of(context).textSecondary),
         hint: Text(label,
-            style: const TextStyle(color: AppColors.textSecondary)),
+            style: TextStyle(color: AppThemeColors.of(context).textSecondary)),
         items: items
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
             .toList(),

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../data/services/api_service.dart';
 import '../../core/constants/constants.dart';
 import '../../core/theme/app_theme.dart';
+import '../../../main.dart' show ThemeController;
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -247,8 +248,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               top: 24,
               bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
             ),
-            decoration: const BoxDecoration(
-              color: AppColors.bgCard,
+            decoration: BoxDecoration(
+              color: AppThemeColors.of(context).bgCard,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
@@ -260,7 +261,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -270,10 +271,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     const Icon(Icons.lock_outline, color: AppColors.accent, size: 18),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Change Password',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppThemeColors.of(context).textPrimary,
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
@@ -284,13 +285,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: currentCtrl,
                   obscureText: obscureCurrent,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: darkInputDecoration(
-                    'Current Password',
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                  decoration: darkInputDecoration('Current Password', context: context,
                     suffix: IconButton(
                       icon: Icon(
                         obscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: Colors.white.withValues(alpha: 0.55),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                         size: 20,
                       ),
                       onPressed: () => setSheet(() => obscureCurrent = !obscureCurrent),
@@ -301,13 +301,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: newCtrl,
                   obscureText: obscureNew,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: darkInputDecoration(
-                    'New Password',
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                  decoration: darkInputDecoration('New Password', context: context,
                     suffix: IconButton(
                       icon: Icon(
                         obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: Colors.white.withValues(alpha: 0.55),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                         size: 20,
                       ),
                       onPressed: () => setSheet(() => obscureNew = !obscureNew),
@@ -318,13 +317,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: confirmCtrl,
                   obscureText: obscureConfirm,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: darkInputDecoration(
-                    'Confirm New Password',
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                  decoration: darkInputDecoration('Confirm New Password', context: context,
                     suffix: IconButton(
                       icon: Icon(
                         obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: Colors.white.withValues(alpha: 0.55),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                         size: 20,
                       ),
                       onPressed: () => setSheet(() => obscureConfirm = !obscureConfirm),
@@ -364,8 +362,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: 'Edit Profile'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: 'Edit Profile'),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.accent))
@@ -419,18 +417,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         color: AppColors.accentBlue,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                            color: AppColors.bg, width: 2),
+                                            color: AppThemeColors.of(context).bg, width: 2),
                                       ),
                                       child: _isUploadingPic
-                                          ? const SizedBox(
+                                          ? SizedBox(
                                               width: 14,
                                               height: 14,
                                               child: CircularProgressIndicator(
-                                                  color: Colors.white,
+                                                  color: AppThemeColors.of(context).textPrimary,
                                                   strokeWidth: 2),
                                             )
-                                          : const Icon(Icons.camera_alt,
-                                              size: 14, color: Colors.white),
+                                          : Icon(Icons.camera_alt,
+                                              size: 14, color: AppThemeColors.of(context).textPrimary),
                                     ),
                                   ),
                                 ],
@@ -439,7 +437,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               Text(
                                 'Tap camera to change photo',
                                 style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.4),
+                                    color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.4),
                                     fontSize: 12),
                               ),
                             ],
@@ -483,7 +481,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Container(
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.bgSurface,
+                            color: AppThemeColors.of(context).bgSurface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: const Color(0xFF1E2D40)),
@@ -493,15 +491,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: DropdownButton<String>(
                             value: _gender,
                             isExpanded: true,
-                            dropdownColor: AppColors.bgCard,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 15),
+                            dropdownColor: AppThemeColors.of(context).bgCard,
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textPrimary, fontSize: 15),
                             underline: const SizedBox.shrink(),
-                            icon: const Icon(Icons.keyboard_arrow_down,
-                                color: AppColors.textSecondary),
-                            hint: const Text('Select gender',
+                            icon: Icon(Icons.keyboard_arrow_down,
+                                color: AppThemeColors.of(context).textSecondary),
+                            hint: Text('Select gender',
                                 style: TextStyle(
-                                    color: AppColors.textSecondary)),
+                                    color: AppThemeColors.of(context).textSecondary)),
                             items: _genders.map((g) {
                               return DropdownMenuItem<String>(
                                 value: g,
@@ -525,10 +523,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: _field(
                                 _dobCtrl,
                                 'Date of Birth',
-                                suffix: const Icon(
+                                suffix: Icon(
                                   Icons.calendar_today_outlined,
                                   size: 18,
-                                  color: AppColors.textSecondary,
+                                  color: AppThemeColors.of(context).textSecondary,
                                 ),
                               ),
                             ),
@@ -586,6 +584,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        _sectionHeader(Icons.palette_outlined, 'Appearance'),
+                        const SizedBox(height: 12),
+                        _ThemeToggleTile(),
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -624,8 +626,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       keyboardType: keyboardType,
       maxLines: maxLines,
       validator: validator,
-      style: const TextStyle(color: Colors.white),
-      decoration: darkInputDecoration(label, suffix: suffix),
+      style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+      decoration: darkInputDecoration(label, context: context, suffix: suffix),
+    );
+  }
+}
+
+class _ThemeToggleTile extends StatelessWidget {
+  const _ThemeToggleTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.themeMode,
+      builder: (_, mode, _) {
+        final isDark = mode == ThemeMode.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: c.bgSurface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: c.cardBorder),
+          ),
+          child: SwitchListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            secondary: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.accentBlue.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                color: AppColors.accentBlue,
+                size: 20,
+              ),
+            ),
+            title: Text(
+              isDark ? 'Dark Mode' : 'Light Mode',
+              style: TextStyle(
+                color: c.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: Text(
+              isDark ? 'Switch to light theme' : 'Switch to dark theme',
+              style: TextStyle(color: c.textSecondary, fontSize: 12),
+            ),
+            value: isDark,
+            onChanged: (_) => ThemeController.toggle(),
+            activeThumbColor: AppColors.accentBlue,
+            activeTrackColor: AppColors.accentBlue.withValues(alpha: 0.4),
+          ),
+        );
+      },
     );
   }
 }

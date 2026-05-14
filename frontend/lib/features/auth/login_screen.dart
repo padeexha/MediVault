@@ -103,10 +103,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Welcome back,',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppThemeColors.of(context).textPrimary,
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                             ),
@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'Sign in to access your secured medical records.',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.65),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.65),
                               fontSize: 13,
                             ),
                           ),
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.white.withValues(alpha: 0.55),
+                                color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.55),
                                 size: 20,
                               ),
                               onPressed: () => setState(() =>
@@ -174,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 'Forgot password?',
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
+                                  color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.75),
                                   fontSize: 13,
                                 ),
                               ),
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Text(
                                 "Don't have an account? ",
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
+                                  color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.7),
                                   fontSize: 13,
                                 ),
                               ),
@@ -206,10 +206,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   MaterialPageRoute(
                                       builder: (_) => const RegisterScreen()),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'Sign Up',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppThemeColors.of(context).textPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                   ),

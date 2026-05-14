@@ -103,10 +103,10 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
             const SizedBox(width: 10),
             Expanded(
                 child: Text(msg,
-                    style: const TextStyle(color: Colors.white))),
+                    style: TextStyle(color: AppThemeColors.of(context).textPrimary))),
           ],
         ),
-        backgroundColor: AppColors.bgSurface,
+        backgroundColor: AppThemeColors.of(context).bgSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -119,7 +119,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       case 'prescription':      return const Color(0xFF1D9E75);
       case 'radiology':         return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default:                  return AppColors.textSecondary;
+      default:                  return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -131,8 +131,9 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       appBar: darkGlassAppBar(
+        context: context,
         title: 'Record Details',
         actions: [
           if (!_isEditing)
@@ -151,8 +152,8 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   _selectedCategory = widget.record.category;
                 });
               },
-              child: const Text('Cancel',
-                  style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Cancel',
+                  style: TextStyle(color: AppThemeColors.of(context).textSecondary)),
             ),
         ],
       ),
@@ -229,21 +230,21 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               const SizedBox(height: 14),
               Text(
                 widget.record.title,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: AppThemeColors.of(context).textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 13, color: AppColors.textSecondary),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 13, color: AppThemeColors.of(context).textSecondary),
                   const SizedBox(width: 5),
                   Text(
                     'Uploaded ${_formatDate(widget.record.uploadDate)}',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 13),
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textSecondary, fontSize: 13),
                   ),
                 ],
               ),
@@ -333,8 +334,8 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
             const SizedBox(height: 12),
             Text(
               widget.record.notes!,
-              style: const TextStyle(
-                  color: AppColors.textSecondary,
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textSecondary,
                   fontSize: 14,
                   height: 1.5),
             ),
@@ -351,11 +352,11 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       child: ElevatedButton.icon(
         onPressed: _isDownloading ? null : _logDownload,
         icon: _isDownloading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white),
+                    strokeWidth: 2, color: AppThemeColors.of(context).textPrimary),
               )
             : const Icon(Icons.download_outlined, size: 20),
         label:
@@ -374,24 +375,24 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Edit Record',
+        Text('Edit Record',
             style: TextStyle(
-                color: Colors.white,
+                color: AppThemeColors.of(context).textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         TextFormField(
           controller: _titleCtrl,
-          style: const TextStyle(color: Colors.white),
-          decoration: darkInputDecoration('Title', prefixIcon: Icons.title),
+          style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+          decoration: darkInputDecoration('Title', context: context, prefixIcon: Icons.title),
         ),
         const SizedBox(height: 14),
         DropdownButtonFormField<String>(
           initialValue: _selectedCategory,
-          dropdownColor: AppColors.bgCard,
-          style: const TextStyle(color: Colors.white),
+          dropdownColor: AppThemeColors.of(context).bgCard,
+          style: TextStyle(color: AppThemeColors.of(context).textPrimary),
           decoration:
-              darkInputDecoration('Category', prefixIcon: Icons.category),
+              darkInputDecoration('Category', context: context, prefixIcon: Icons.category),
           items: _categories.map((c) {
             return DropdownMenuItem(
                 value: c['value'], child: Text(c['label']!));
@@ -404,8 +405,8 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
         TextFormField(
           controller: _notesCtrl,
           maxLines: 3,
-          style: const TextStyle(color: Colors.white),
-          decoration: darkInputDecoration('Notes', prefixIcon: Icons.notes),
+          style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+          decoration: darkInputDecoration('Notes', context: context, prefixIcon: Icons.notes),
         ),
         const SizedBox(height: 24),
         DarkButton(
@@ -427,13 +428,13 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
           SizedBox(
             width: 90,
             child: Text(label,
-                style: const TextStyle(
-                    color: AppColors.textSecondary, fontSize: 13)),
+                style: TextStyle(
+                    color: AppThemeColors.of(context).textSecondary, fontSize: 13)),
           ),
           Expanded(
             child: Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: AppThemeColors.of(context).textPrimary,
                     fontWeight: FontWeight.w500,
                     fontSize: 13)),
           ),

@@ -81,10 +81,10 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
             const SizedBox(width: 10),
             Expanded(
                 child: Text(msg,
-                    style: const TextStyle(color: Colors.white))),
+                    style: TextStyle(color: AppThemeColors.of(context).textPrimary))),
           ],
         ),
-        backgroundColor: AppColors.bgSurface,
+        backgroundColor: AppThemeColors.of(context).bgSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -97,7 +97,7 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
       case 'prescription':      return const Color(0xFF1D9E75);
       case 'radiology':         return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default:                  return AppColors.textSecondary;
+      default:                  return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -114,8 +114,8 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: 'Shared Records'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: 'Shared Records'),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.accent))
@@ -123,7 +123,7 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
               ? _emptyState()
               : RefreshIndicator(
                   color: AppColors.accent,
-                  backgroundColor: AppColors.bgCard,
+                  backgroundColor: AppThemeColors.of(context).bgCard,
                   onRefresh: _loadSharedRecords,
                   child: ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -177,17 +177,17 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.folder_shared_outlined,
-                size: 72, color: Colors.white.withValues(alpha: 0.12)),
+                size: 72, color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12)),
             const SizedBox(height: 20),
-            const Text('No Records Shared With You',
+            Text('No Records Shared With You',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppThemeColors.of(context).textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Patients must grant you access from their app before you can view their records.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -230,14 +230,14 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(patientName,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 15)),
                 if (patientEmail.isNotEmpty)
                   Text(patientEmail,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 12)),
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textSecondary, fontSize: 12)),
               ],
             ),
           ),
@@ -315,8 +315,8 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(record.title,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 14),
                       maxLines: 1,
@@ -355,8 +355,8 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
                       const SizedBox(width: 6),
                       Text(
                         _formatDate(record.uploadDate),
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 11),
+                        style: TextStyle(
+                            color: AppThemeColors.of(context).textSecondary, fontSize: 11),
                       ),
                     ],
                   ),

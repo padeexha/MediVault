@@ -214,10 +214,10 @@ class _RecordListScreenState extends State<RecordListScreen> {
             const SizedBox(width: 10),
             Expanded(
                 child:
-                    Text(msg, style: const TextStyle(color: Colors.white))),
+                    Text(msg, style: TextStyle(color: AppThemeColors.of(context).textPrimary))),
           ],
         ),
-        backgroundColor: AppColors.bgSurface,
+        backgroundColor: AppThemeColors.of(context).bgSurface,
         behavior: SnackBarBehavior.floating,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -228,7 +228,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
   void _showSortSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppThemeColors.of(context).bgCard,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => Padding(
@@ -237,15 +237,15 @@ class _RecordListScreenState extends State<RecordListScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Filters',
+            Text('Filters',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppThemeColors.of(context).textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            const Text('Sharing status',
+            Text('Sharing status',
                 style: TextStyle(
-                    color: AppColors.textSecondary, fontSize: 12)),
+                    color: AppThemeColors.of(context).textSecondary, fontSize: 12)),
             const SizedBox(height: 8),
             ...{
               _SharedFilter.all:     'All records',
@@ -256,7 +256,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                   groupValue: _sharedFilter,
                   activeColor: AppColors.accentBlue,
                   title: Text(e.value,
-                      style: const TextStyle(color: Colors.white)),
+                      style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
                   contentPadding: EdgeInsets.zero,
                   onChanged: (v) {
                     if (v != null) setState(() => _sharedFilter = v);
@@ -280,9 +280,9 @@ class _RecordListScreenState extends State<RecordListScreen> {
     };
     return Row(
       children: [
-        const Text('Sort:',
+        Text('Sort:',
             style: TextStyle(
-                color: AppColors.textSecondary,
+                color: AppThemeColors.of(context).textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w500)),
         const SizedBox(width: 8),
@@ -318,7 +318,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                       style: TextStyle(
                         color: selected
                             ? Colors.white
-                            : AppColors.textSecondary,
+                            : AppThemeColors.of(context).textSecondary,
                         fontSize: 12,
                         fontWeight: selected
                             ? FontWeight.w600
@@ -341,7 +341,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
       case 'prescription':      return const Color(0xFF1D9E75);
       case 'radiology':         return const Color(0xFF854F0B);
       case 'discharge_summary': return const Color(0xFF993C1D);
-      default:                  return AppColors.textSecondary;
+      default:                  return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -362,8 +362,9 @@ class _RecordListScreenState extends State<RecordListScreen> {
         (_dateTo != null ? 1 : 0);
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppThemeColors.of(context).bg,
       appBar: darkGlassAppBar(
+        context: context,
         title: 'Records',
         actions: [
           Stack(
@@ -399,8 +400,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
             child: Column(
               children: [
                 TextField(
-                  style: const TextStyle(color: Colors.white),
-                  decoration: darkInputDecoration('Search by title or category…',
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                  decoration: darkInputDecoration('Search by title or category…', context: context,
                       prefixIcon: Icons.search),
                   onChanged: (v) {
                     _searchQuery = v;
@@ -446,7 +447,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                               style: TextStyle(
                                 color: selected
                                     ? Colors.white
-                                    : AppColors.textSecondary,
+                                    : AppThemeColors.of(context).textSecondary,
                                 fontSize: 12,
                                 fontWeight: selected
                                     ? FontWeight.w600
@@ -498,7 +499,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                     ? _emptyState()
                     : RefreshIndicator(
                         color: AppColors.accent,
-                        backgroundColor: AppColors.bgCard,
+                        backgroundColor: AppThemeColors.of(context).bgCard,
                         onRefresh: _loadRecords,
                         child: ListView.builder(
                           padding:
@@ -567,8 +568,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
                       Expanded(
                         child: Text(
                           record.title,
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: AppThemeColors.of(context).textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 14),
                           maxLines: 1,
@@ -632,7 +633,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                               size: 9,
                               color: isShared
                                   ? AppColors.ecgGreen
-                                  : AppColors.textSecondary,
+                                  : AppThemeColors.of(context).textSecondary,
                             ),
                             const SizedBox(width: 3),
                             Text(
@@ -640,7 +641,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                               style: TextStyle(
                                 color: isShared
                                     ? AppColors.ecgGreen
-                                    : AppColors.textSecondary,
+                                    : AppThemeColors.of(context).textSecondary,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -653,8 +654,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
                   const SizedBox(height: 4),
                   Text(
                     _formatDate(record.uploadDate),
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 11),
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textSecondary, fontSize: 11),
                   ),
                 ],
               ),
@@ -672,7 +673,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
                           : Icons.star_border_rounded,
                       color: isFav
                           ? Colors.amber
-                          : AppColors.textSecondary,
+                          : AppThemeColors.of(context).textSecondary,
                       size: 22,
                     ),
                   ),
@@ -720,7 +721,7 @@ class _RecordListScreenState extends State<RecordListScreen> {
         height: 36,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: AppColors.bgSurface,
+          color: AppThemeColors.of(context).bgSurface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: date != null
@@ -732,14 +733,14 @@ class _RecordListScreenState extends State<RecordListScreen> {
           children: [
             Icon(Icons.calendar_today,
                 size: 12,
-                color: date != null ? AppColors.accent : AppColors.textSecondary),
+                color: date != null ? AppColors.accent : AppThemeColors.of(context).textSecondary),
             const SizedBox(width: 5),
             Expanded(
               child: Text(
                 date != null ? DateFormat('dd/MM/yy').format(date) : hint,
                 style: TextStyle(
                   fontSize: 12,
-                  color: date != null ? Colors.white : AppColors.textSecondary,
+                  color: date != null ? Colors.white : AppThemeColors.of(context).textSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -747,8 +748,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
             if (date != null && onClear != null)
               GestureDetector(
                 onTap: onClear,
-                child: const Icon(Icons.close,
-                    size: 12, color: AppColors.textSecondary),
+                child: Icon(Icons.close,
+                    size: 12, color: AppThemeColors.of(context).textSecondary),
               ),
           ],
         ),
@@ -771,15 +772,15 @@ class _RecordListScreenState extends State<RecordListScreen> {
             Icon(
               hasSearch ? Icons.search_off : Icons.folder_open_outlined,
               size: 72,
-              color: Colors.white.withValues(alpha: 0.15),
+              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.15),
             ),
             const SizedBox(height: 16),
             Text(
               hasSearch
                   ? 'No records match your filters'
                   : 'No records yet',
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold),
             ),
@@ -788,8 +789,8 @@ class _RecordListScreenState extends State<RecordListScreen> {
               hasSearch
                   ? 'Try adjusting your search or filters.'
                   : 'Upload your first medical record using the + button.',
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textSecondary, fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -826,7 +827,7 @@ class _ConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppThemeColors.of(context).bgCard,
       shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
@@ -834,20 +835,20 @@ class _ConfirmDialog extends StatelessWidget {
           Icon(icon, color: confirmColor, size: 22),
           const SizedBox(width: 10),
           Text(title,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: AppThemeColors.of(context).textPrimary,
                   fontSize: 17,
                   fontWeight: FontWeight.bold)),
         ],
       ),
       content: Text(content,
-          style: const TextStyle(
-              color: AppColors.textSecondary, fontSize: 14)),
+          style: TextStyle(
+              color: AppThemeColors.of(context).textSecondary, fontSize: 14)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel',
-              style: TextStyle(color: AppColors.textSecondary)),
+          child: Text('Cancel',
+              style: TextStyle(color: AppThemeColors.of(context).textSecondary)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),

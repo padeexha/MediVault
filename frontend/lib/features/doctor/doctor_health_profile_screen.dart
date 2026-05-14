@@ -69,10 +69,10 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
                 size: 18),
             const SizedBox(width: 10),
             Expanded(
-                child: Text(msg, style: const TextStyle(color: Colors.white))),
+                child: Text(msg, style: TextStyle(color: AppThemeColors.of(context).textPrimary))),
           ],
         ),
-        backgroundColor: AppColors.bgSurface,
+        backgroundColor: AppThemeColors.of(context).bgSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -84,8 +84,8 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
       case 'pending':  return Colors.orange;
       case 'approved': return AppColors.ecgGreen;
       case 'rejected': return Colors.redAccent;
-      case 'revoked':  return AppColors.textSecondary;
-      default:         return AppColors.textSecondary;
+      case 'revoked':  return AppThemeColors.of(context).textSecondary;
+      default:         return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -102,8 +102,8 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: 'Patient Health Profiles'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: 'Patient Health Profiles'),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.accent))
@@ -116,18 +116,18 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
                       children: [
                         Icon(Icons.health_and_safety_outlined,
                             size: 72,
-                            color: Colors.white.withValues(alpha: 0.15)),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.15)),
                         const SizedBox(height: 20),
-                        const Text('No Health Profiles Shared',
+                        Text('No Health Profiles Shared',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'No patients have shared their health profile with you yet. Patients control access to their own health profiles.',
                           style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13),
+                              color: AppThemeColors.of(context).textSecondary, fontSize: 13),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -136,7 +136,7 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
                 )
               : RefreshIndicator(
                   color: AppColors.accent,
-                  backgroundColor: AppColors.bgCard,
+                  backgroundColor: AppThemeColors.of(context).bgCard,
                   onRefresh: _loadAccess,
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -181,14 +181,14 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(name,
-                                        style: const TextStyle(
-                                            color: Colors.white,
+                                        style: TextStyle(
+                                            color: AppThemeColors.of(context).textPrimary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15)),
                                     if (email.isNotEmpty)
                                       Text(email,
-                                          style: const TextStyle(
-                                              color: AppColors.textSecondary,
+                                          style: TextStyle(
+                                              color: AppThemeColors.of(context).textSecondary,
                                               fontSize: 12)),
                                     const SizedBox(height: 6),
                                     Row(
@@ -225,9 +225,9 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
                                 ),
                               ),
                               if (status == 'approved')
-                                const Icon(Icons.arrow_forward_ios,
+                                Icon(Icons.arrow_forward_ios,
                                     size: 14,
-                                    color: AppColors.textSecondary),
+                                    color: AppThemeColors.of(context).textSecondary),
                             ],
                           ),
                         ),
@@ -250,8 +250,8 @@ class _ProfileViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: '$patientName\'s Health Profile'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: '$patientName\'s Health Profile'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -281,31 +281,31 @@ class _ProfileViewScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _infoCard('Basic Information', Icons.person_outline, [
-              _row('Full Name', profile.fullName),
-              _row('Age', profile.age?.toString() ?? '—'),
-              _row('Gender', profile.gender.isEmpty ? '—' : profile.gender),
+            _infoCard(context, 'Basic Information', Icons.person_outline, [
+              _row(context, 'Full Name', profile.fullName),
+              _row(context, 'Age', profile.age?.toString() ?? '—'),
+              _row(context, 'Gender', profile.gender.isEmpty ? '—' : profile.gender),
             ]),
             const SizedBox(height: 12),
-            _infoCard('Physical Stats', Icons.monitor_heart_outlined, [
-              _row('Height', profile.height.isEmpty ? '—' : profile.height),
-              _row('Weight', profile.weight.isEmpty ? '—' : profile.weight),
-              _row('Blood Group',
+            _infoCard(context, 'Physical Stats', Icons.monitor_heart_outlined, [
+              _row(context, 'Height', profile.height.isEmpty ? '—' : profile.height),
+              _row(context, 'Weight', profile.weight.isEmpty ? '—' : profile.weight),
+              _row(context, 'Blood Group',
                   profile.bloodGroup.isEmpty ? '—' : profile.bloodGroup),
             ]),
             if (profile.allergies.isNotEmpty ||
                 profile.currentMedications.isNotEmpty ||
                 profile.chronicConditions.isNotEmpty) ...[
               const SizedBox(height: 12),
-              _medCard(profile),
+              _medCard(context, profile),
             ],
             const SizedBox(height: 12),
-            _infoCard('Emergency Contact', Icons.emergency_outlined, [
-              _row('Name',
+            _infoCard(context, 'Emergency Contact', Icons.emergency_outlined, [
+              _row(context, 'Name',
                   profile.emergencyContactName.isEmpty
                       ? '—'
                       : profile.emergencyContactName),
-              _row('Number',
+              _row(context, 'Number',
                   profile.emergencyContactNumber.isEmpty
                       ? '—'
                       : profile.emergencyContactNumber),
@@ -317,7 +317,7 @@ class _ProfileViewScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoCard(String title, IconData icon, List<Widget> rows) {
+  Widget _infoCard(BuildContext context, String title, IconData icon, List<Widget> rows) {
     return DarkListCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -341,7 +341,8 @@ class _ProfileViewScreen extends StatelessWidget {
     );
   }
 
-  Widget _row(String label, String value) {
+  Widget _row(BuildContext context, String label, String value) {
+    final c = AppThemeColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -350,13 +351,12 @@ class _ProfileViewScreen extends StatelessWidget {
           SizedBox(
             width: 110,
             child: Text(label,
-                style: const TextStyle(
-                    color: AppColors.textSecondary, fontSize: 13)),
+                style: TextStyle(color: c.textSecondary, fontSize: 13)),
           ),
           Expanded(
             child: Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: c.textPrimary,
                     fontWeight: FontWeight.w500,
                     fontSize: 13)),
           ),
@@ -365,14 +365,15 @@ class _ProfileViewScreen extends StatelessWidget {
     );
   }
 
-  Widget _medCard(HealthProfileModel p) {
+  Widget _medCard(BuildContext context, HealthProfileModel p) {
+    final c = AppThemeColors.of(context);
     return DarkListCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: const [
+            const Row(children: [
               Icon(Icons.medical_information_outlined,
                   size: 15, color: AppColors.accent),
               SizedBox(width: 8),
@@ -384,25 +385,22 @@ class _ProfileViewScreen extends StatelessWidget {
             ]),
             if (p.allergies.isNotEmpty) ...[
               const SizedBox(height: 14),
-              const Text('Allergies',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12)),
+              Text('Allergies',
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
               const SizedBox(height: 6),
               _chips(p.allergies, Colors.redAccent),
             ],
             if (p.currentMedications.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Text('Medications',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12)),
+              Text('Medications',
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
               const SizedBox(height: 6),
               _chips(p.currentMedications, AppColors.accentBlue),
             ],
             if (p.chronicConditions.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Text('Chronic Conditions',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12)),
+              Text('Chronic Conditions',
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
               const SizedBox(height: 6),
               _chips(p.chronicConditions, const Color(0xFF854F0B)),
             ],

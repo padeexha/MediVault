@@ -3,57 +3,134 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+// ── AppColors: accent/status (shared) + dark-mode fallbacks for const contexts
 class AppColors {
-  static const Color bg = Color(0xFF050C18);
-  static const Color bgCard = Color(0xFF0A1628);
-  static const Color bgSurface = Color(0xFF0F1A2E);
-  static const Color blobBlue = Color(0xFF1240A0);
-  static const Color blobTeal = Color(0xFF0A6E78);
-  static const Color blobRed = Color(0xFF8B1020);
-  static const Color blobGreen = Color(0xFF0B6E3E);
-  static const Color accent = Color(0xFF00C8FF);
-  static const Color accentBlue = Color(0xFF3D72E8);
-  static const Color btnDark = Color(0xFF15202E);
-  static const Color glass = Color(0x12FFFFFF);
-  static const Color glassBorder = Color(0x22FFFFFF);
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xFF8FA8C8);
-  static const Color errorRed = Color(0xFFE53935);
-  static const Color ecgGreen = Color(0xFF1DB954);
-  static const Color medRed = Color(0xFFB71C1C);
+  // Accent & status — identical in both themes
+  static const Color accent      = Color(0xFF00C8FF);
+  static const Color accentBlue  = Color(0xFF3D72E8);
+  static const Color errorRed    = Color(0xFFE53935);
+  static const Color ecgGreen    = Color(0xFF1DB954);
+  static const Color medRed      = Color(0xFFB71C1C);
+  static const Color blobBlue    = Color(0xFF1240A0);
+  static const Color blobTeal    = Color(0xFF0A6E78);
+  static const Color blobRed     = Color(0xFF8B1020);
+  static const Color blobGreen   = Color(0xFF0B6E3E);
+
+  // Dark-mode fallbacks — kept for const contexts; use AppThemeColors.of(context) for live theming
+  static const Color bg           = Color(0xFF050C18);
+  static const Color bgCard       = Color(0xFF0A1628);
+  static const Color bgSurface    = Color(0xFF0F1A2E);
+  static const Color textPrimary  = Colors.white;
+  static const Color textSecondary= Color(0xFF8FA8C8);
+  static const Color glass        = Color(0x12FFFFFF);
+  static const Color glassBorder  = Color(0x22FFFFFF);
+  static const Color btnDark      = Color(0xFF15202E);
 }
 
-// Colorful blob background for auth screens
+// ── Adaptive colours ─────────────────────────────────────────────────────────
+class AppThemeColors {
+  final Color bg;
+  final Color bgCard;
+  final Color bgSurface;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color glass;
+  final Color glassBorder;
+  final Color inputBorder;
+  final Color inputFill;
+  final Color cardBorder;
+  final Color divider;
+  final Color btnSurface;
+  final Color dropdownColor;
+
+  const AppThemeColors({
+    required this.bg,
+    required this.bgCard,
+    required this.bgSurface,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.glass,
+    required this.glassBorder,
+    required this.inputBorder,
+    required this.inputFill,
+    required this.cardBorder,
+    required this.divider,
+    required this.btnSurface,
+    required this.dropdownColor,
+  });
+
+  static const AppThemeColors dark = AppThemeColors(
+    bg:            Color(0xFF050C18),
+    bgCard:        Color(0xFF0A1628),
+    bgSurface:     Color(0xFF0F1A2E),
+    textPrimary:   Color(0xFFFFFFFF),
+    textSecondary: Color(0xFF8FA8C8),
+    glass:         Color(0x12FFFFFF),
+    glassBorder:   Color(0x22FFFFFF),
+    inputBorder:   Color(0xFF1E2D40),
+    inputFill:     Color(0xFF0F1A2E),
+    cardBorder:    Color(0x12FFFFFF),
+    divider:       Color(0x18FFFFFF),
+    btnSurface:    Color(0xFF15202E),
+    dropdownColor: Color(0xFF0A1628),
+  );
+
+  static const AppThemeColors light = AppThemeColors(
+    bg:            Color(0xFFF0F4FF),
+    bgCard:        Color(0xFFE4EAF8),
+    bgSurface:     Color(0xFFD8E1F2),
+    textPrimary:   Color(0xFF0D1B2A),
+    textSecondary: Color(0xFF5A7090),
+    glass:         Color(0xCCFFFFFF),
+    glassBorder:   Color(0x609BB8D4),
+    inputBorder:   Color(0xFFB8C8DC),
+    inputFill:     Color(0xFFDCE5F5),
+    cardBorder:    Color(0x30000000),
+    divider:       Color(0x22000000),
+    btnSurface:    Color(0xFFD8E1F2),
+    dropdownColor: Color(0xFFE4EAF8),
+  );
+
+  static AppThemeColors of(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark ? dark : light;
+  }
+}
+
+// ── Colorful blob background for auth screens ────────────────────────────────
 class ColorfulBackground extends StatelessWidget {
   final Widget child;
   const ColorfulBackground({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     final size = MediaQuery.sizeOf(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      color: AppColors.bg,
+      color: c.bg,
       child: Stack(
         children: [
           Positioned(
             left: -100,
             top: size.height * 0.05,
-            child: _blob(260, AppColors.blobBlue),
+            child: _blob(260, AppColors.blobBlue, isDark),
           ),
           Positioned(
             left: size.width * 0.15,
             top: -60,
-            child: _blob(220, AppColors.blobGreen),
+            child: _blob(220, AppColors.blobGreen, isDark),
           ),
           Positioned(
             right: -80,
             top: size.height * 0.15,
-            child: _blob(240, AppColors.blobRed),
+            child: _blob(240, AppColors.blobRed, isDark),
           ),
           Positioned(
             left: size.width * 0.1,
             bottom: size.height * 0.0,
-            child: _blob(180, AppColors.blobTeal),
+            child: _blob(180, AppColors.blobTeal, isDark),
           ),
           child,
         ],
@@ -61,32 +138,40 @@ class ColorfulBackground extends StatelessWidget {
     );
   }
 
-  Widget _blob(double size, Color color) => Container(
+  Widget _blob(double size, Color color, bool isDark) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withValues(alpha: 0.65), color.withValues(alpha: 0.0)],
+            colors: [
+              color.withValues(alpha: isDark ? 0.65 : 0.35),
+              color.withValues(alpha: 0.0),
+            ],
           ),
         ),
       );
 }
 
-// Dark background with mesh for splash/inner screens
-class DarkBackground extends StatelessWidget {
+// ── Background with mesh for splash / inner screens ──────────────────────────
+class AppBackground extends StatelessWidget {
   final Widget child;
-  const DarkBackground({super.key, required this.child});
+  const AppBackground({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.sizeOf(context);
+
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF050C18), Color(0xFF091520), Color(0xFF060E1A)],
+          colors: isDark
+              ? const [Color(0xFF050C18), Color(0xFF091520), Color(0xFF060E1A)]
+              : [c.bg, c.bgCard, c.bg],
         ),
       ),
       child: Stack(
@@ -94,15 +179,15 @@ class DarkBackground extends StatelessWidget {
           Positioned(
             left: -60,
             top: size.height * 0.2,
-            child: _blob(200, AppColors.blobTeal),
+            child: _blob(200, AppColors.blobTeal, isDark),
           ),
           Positioned(
             right: -50,
             top: size.height * 0.3,
-            child: _blob(180, AppColors.blobRed),
+            child: _blob(180, AppColors.blobRed, isDark),
           ),
           Positioned.fill(
-            child: CustomPaint(painter: _MeshPainter()),
+            child: CustomPaint(painter: _MeshPainter(isDark: isDark)),
           ),
           child,
         ],
@@ -110,26 +195,39 @@ class DarkBackground extends StatelessWidget {
     );
   }
 
-  Widget _blob(double size, Color color) => Container(
+  Widget _blob(double size, Color color, bool isDark) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withValues(alpha: 0.38), color.withValues(alpha: 0.0)],
+            colors: [
+              color.withValues(alpha: isDark ? 0.38 : 0.18),
+              color.withValues(alpha: 0.0),
+            ],
           ),
         ),
       );
 }
 
+// Keep DarkBackground as an alias for backward compat in splash screen
+typedef DarkBackground = AppBackground;
+
 class _MeshPainter extends CustomPainter {
+  final bool isDark;
+  const _MeshPainter({required this.isDark});
+
   @override
   void paint(Canvas canvas, Size size) {
+    final lineAlpha = isDark ? 0.04 : 0.06;
+    final dotAlpha  = isDark ? 0.09 : 0.12;
+    final baseColor = isDark ? Colors.white : const Color(0xFF3D72E8);
+
     final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha:0.04)
+      ..color = baseColor.withValues(alpha: lineAlpha)
       ..strokeWidth = 0.6;
     final dotPaint = Paint()
-      ..color = Colors.white.withValues(alpha:0.09)
+      ..color = baseColor.withValues(alpha: dotAlpha)
       ..style = PaintingStyle.fill;
 
     _drawRegion(canvas, linePaint, dotPaint, 0, 0, size.width * 0.22, size.height);
@@ -141,8 +239,8 @@ class _MeshPainter extends CustomPainter {
     const step = 36.0;
     final cols = ((x2 - x1) / step).ceil() + 1;
     final rows = ((y2 - y1) / step).ceil() + 1;
-    final rng = Random(42);
-    final pts = <Offset>[];
+    final rng  = Random(42);
+    final pts  = <Offset>[];
 
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
@@ -165,10 +263,10 @@ class _MeshPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_) => false;
+  bool shouldRepaint(_MeshPainter old) => old.isDark != isDark;
 }
 
-// Glass card
+// ── Glass card ────────────────────────────────────────────────────────────────
 class GlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
@@ -189,6 +287,7 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
@@ -196,10 +295,10 @@ class GlassCard extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: color ?? AppColors.glass,
+            color: color ?? c.glass,
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: borderColor ?? AppColors.glassBorder,
+              color: borderColor ?? c.glassBorder,
               width: 1,
             ),
           ),
@@ -210,7 +309,7 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-// Glass-styled text field
+// ── Glass text field (auth screens) ──────────────────────────────────────────
 class GlassTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -235,6 +334,7 @@ class GlassTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: BackdropFilter(
@@ -245,39 +345,35 @@ class GlassTextField extends StatelessWidget {
           keyboardType: keyboardType,
           validator: validator,
           maxLines: obscureText ? 1 : maxLines,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
+          style: TextStyle(color: c.textPrimary, fontSize: 15),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha:0.45)),
+            hintStyle: TextStyle(color: c.textPrimary.withValues(alpha: 0.45)),
             prefixIcon: Icon(prefixIcon,
-                color: Colors.white.withValues(alpha:0.55), size: 20),
+                color: c.textPrimary.withValues(alpha: 0.55), size: 20),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.white.withValues(alpha:0.10),
+            fillColor: c.textPrimary.withValues(alpha: 0.10),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  BorderSide(color: Colors.white.withValues(alpha:0.18)),
+              borderSide: BorderSide(color: c.textPrimary.withValues(alpha: 0.18)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  BorderSide(color: Colors.white.withValues(alpha:0.18)),
+              borderSide: BorderSide(color: c.textPrimary.withValues(alpha: 0.18)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  BorderSide(color: Colors.white.withValues(alpha:0.5), width: 1.2),
+              borderSide: BorderSide(
+                  color: c.textPrimary.withValues(alpha: 0.5), width: 1.2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: AppColors.errorRed),
+              borderSide: const BorderSide(color: AppColors.errorRed),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: AppColors.errorRed),
+              borderSide: const BorderSide(color: AppColors.errorRed),
             ),
             errorStyle: const TextStyle(color: AppColors.errorRed),
             contentPadding:
@@ -289,7 +385,7 @@ class GlassTextField extends StatelessWidget {
   }
 }
 
-// Gradient border dark button (Sign In style)
+// ── Gradient border button (auth screens) ────────────────────────────────────
 class GradientButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -304,6 +400,7 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     return Container(
       height: 56,
       decoration: BoxDecoration(
@@ -316,21 +413,21 @@ class GradientButton extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(26),
         child: Material(
-          color: AppColors.btnDark,
+          color: c.btnSurface,
           child: InkWell(
             onTap: isLoading ? null : onPressed,
             child: Center(
               child: isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2),
+                          color: c.textPrimary, strokeWidth: 2),
                     )
                   : Text(
                       label,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: c.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -344,7 +441,7 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-// Solid dark button for inner screens
+// ── Solid action button for inner screens ────────────────────────────────────
 class DarkButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -402,7 +499,7 @@ class DarkButton extends StatelessWidget {
   }
 }
 
-// MediVault logo widget
+// ── MediVault logo ────────────────────────────────────────────────────────────
 class MediVaultLogo extends StatelessWidget {
   final double scale;
   const MediVaultLogo({super.key, this.scale = 1.0});
@@ -417,29 +514,34 @@ class MediVaultLogo extends StatelessWidget {
   }
 }
 
-// Glass AppBar for inner screens
+// ── Glass app bar for inner screens ──────────────────────────────────────────
 AppBar darkGlassAppBar({
   required String title,
   List<Widget>? actions,
   bool implyLeading = true,
   bool showLogo = false,
+  BuildContext? context,
 }) {
+  final isDark = context != null
+      ? Theme.of(context).brightness == Brightness.dark
+      : true;
+  final textColor = isDark ? Colors.white : const Color(0xFF0D1B2A);
+  final bgColor   = isDark
+      ? Colors.white.withValues(alpha: 0.05)
+      : Colors.white.withValues(alpha: 0.70);
+  final borderColor = isDark
+      ? Colors.white.withValues(alpha: 0.08)
+      : Colors.black.withValues(alpha: 0.08);
+
   return AppBar(
     backgroundColor: Colors.transparent,
     elevation: 0,
     title: showLogo
-        ? Image.asset(
-            'assets/images/logo.png',
-            height: 36,
-            fit: BoxFit.contain,
-          )
-        : Text(
-            title,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-    iconTheme: const IconThemeData(color: Colors.white),
-    actionsIconTheme: const IconThemeData(color: Colors.white),
+        ? Image.asset('assets/images/logo.png', height: 36, fit: BoxFit.contain)
+        : Text(title,
+            style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+    iconTheme: IconThemeData(color: textColor),
+    actionsIconTheme: IconThemeData(color: textColor),
     actions: actions,
     automaticallyImplyLeading: implyLeading,
     flexibleSpace: ClipRect(
@@ -447,10 +549,8 @@ AppBar darkGlassAppBar({
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha:0.05),
-            border: Border(
-              bottom: BorderSide(color: Colors.white.withValues(alpha:0.08)),
-            ),
+            color: bgColor,
+            border: Border(bottom: BorderSide(color: borderColor)),
           ),
         ),
       ),
@@ -458,7 +558,7 @@ AppBar darkGlassAppBar({
   );
 }
 
-// Dark-styled list card
+// ── Themed list card (replaces DarkListCard) ──────────────────────────────────
 class DarkListCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -473,12 +573,13 @@ class DarkListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppThemeColors.of(context);
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
+        color: c.bgSurface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha:0.07)),
+        border: Border.all(color: c.cardBorder),
       ),
       child: onTap != null
           ? InkWell(
@@ -491,11 +592,11 @@ class DarkListCard extends StatelessWidget {
   }
 }
 
-// Profile avatar: shows network image or gender-based local asset fallback
+// ── Profile avatar ────────────────────────────────────────────────────────────
 class ProfileAvatar extends StatelessWidget {
   final String? profilePicture;
   final String? gender;
-  final String role; // 'patient' | 'doctor'
+  final String role;
   final double radius;
 
   const ProfileAvatar({
@@ -521,7 +622,7 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = radius * 2;
-    final url = profilePicture;
+    final url  = profilePicture;
 
     Widget inner;
     if (url != null && url.isNotEmpty) {
@@ -530,9 +631,8 @@ class ProfileAvatar extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
-        placeholder: (_, url2) =>
-            Image.asset(_fallbackAsset, fit: BoxFit.cover),
-        errorWidget: (_, url2, err) =>
+        placeholder: (_, __) => Image.asset(_fallbackAsset, fit: BoxFit.cover),
+        errorWidget: (_, __, ___) =>
             Image.asset(_fallbackAsset, fit: BoxFit.cover),
       );
     } else {
@@ -543,24 +643,34 @@ class ProfileAvatar extends StatelessWidget {
   }
 }
 
-// Dark input decoration for inner screens
-InputDecoration darkInputDecoration(String label, {IconData? prefixIcon, Widget? suffix}) {
+// ── Themed input decoration for inner screens ─────────────────────────────────
+InputDecoration darkInputDecoration(
+  String label, {
+  IconData? prefixIcon,
+  Widget? suffix,
+  BuildContext? context,
+}) {
+  final isDark = context != null
+      ? Theme.of(context).brightness == Brightness.dark
+      : true;
+  final c = isDark ? AppThemeColors.dark : AppThemeColors.light;
+
   return InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(color: AppColors.textSecondary),
+    labelStyle: TextStyle(color: c.textSecondary),
     prefixIcon: prefixIcon != null
-        ? Icon(prefixIcon, color: AppColors.textSecondary, size: 20)
+        ? Icon(prefixIcon, color: c.textSecondary, size: 20)
         : null,
     suffixIcon: suffix,
     filled: true,
-    fillColor: AppColors.bgSurface,
+    fillColor: c.inputFill,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF1E2D40)),
+      borderSide: BorderSide(color: c.inputBorder),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF1E2D40)),
+      borderSide: BorderSide(color: c.inputBorder),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),

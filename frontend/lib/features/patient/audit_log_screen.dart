@@ -47,8 +47,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
       case 'permission_granted': return AppColors.ecgGreen;
       case 'permission_revoked': return const Color(0xFF993C1D);
       case 'login':              return AppColors.accentBlue;
-      case 'logout':             return AppColors.textSecondary;
-      default:                   return AppColors.textSecondary;
+      case 'logout':             return AppThemeColors.of(context).textSecondary;
+      default:                   return AppThemeColors.of(context).textSecondary;
     }
   }
 
@@ -98,8 +98,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: 'Audit Log'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: 'Audit Log'),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.accent))
@@ -107,7 +107,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               ? _emptyState()
               : RefreshIndicator(
                   color: AppColors.accent,
-                  backgroundColor: AppColors.bgCard,
+                  backgroundColor: AppThemeColors.of(context).bgCard,
                   onRefresh: _loadLogs,
                   child: _buildTimeline(),
                 ),
@@ -122,17 +122,17 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.history,
-                size: 72, color: Colors.white.withValues(alpha: 0.12)),
+                size: 72, color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12)),
             const SizedBox(height: 20),
-            const Text('No Activity Yet',
+            Text('No Activity Yet',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppThemeColors.of(context).textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Actions like uploads, views, downloads, and access changes will appear here.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: AppThemeColors.of(context).textSecondary, fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -181,7 +181,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                   Expanded(
                     child: Container(
                       height: 1,
-                      color: Colors.white.withValues(alpha: 0.06),
+                      color: AppThemeColors.of(context).divider,
                     ),
                   ),
                 ],
@@ -228,7 +228,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                     child: Container(
                       width: 1.5,
                       margin: const EdgeInsets.only(top: 4),
-                      color: Colors.white.withValues(alpha: 0.06),
+                      color: AppThemeColors.of(context).divider,
                     ),
                   ),
               ],
@@ -242,10 +242,10 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
+                  color: AppThemeColors.of(context).bgSurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.06)),
+                      color: AppThemeColors.of(context).divider),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,8 +255,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                         Expanded(
                           child: Text(
                             log.actionDisplay,
-                            style: const TextStyle(
-                                color: Colors.white,
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13),
                           ),
@@ -288,14 +288,14 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                       const SizedBox(height: 5),
                       Row(
                         children: [
-                          const Icon(Icons.insert_drive_file_outlined,
-                              size: 11, color: AppColors.textSecondary),
+                          Icon(Icons.insert_drive_file_outlined,
+                              size: 11, color: AppThemeColors.of(context).textSecondary),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               log.recordTitle!,
-                              style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                              style: TextStyle(
+                                  color: AppThemeColors.of(context).textSecondary,
                                   fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -313,7 +313,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                           size: 11,
                           color: isDoctor
                               ? AppColors.accent
-                              : AppColors.textSecondary,
+                              : AppThemeColors.of(context).textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -321,14 +321,14 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                           style: TextStyle(
                               color: isDoctor
                                   ? AppColors.accent
-                                  : AppColors.textSecondary,
+                                  : AppThemeColors.of(context).textSecondary,
                               fontSize: 11),
                         ),
                         const Spacer(),
                         Text(
                           _formatTime(log.actionDate),
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.3),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.3),
                               fontSize: 11),
                         ),
                       ],

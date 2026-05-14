@@ -116,7 +116,7 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppThemeColors.of(context).bgCard,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
@@ -151,8 +151,8 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                           children: [
                             Text(
                               doctor['name'] ?? '',
-                              style: const TextStyle(
-                                  color: Colors.white,
+                              style: TextStyle(
+                                  color: AppThemeColors.of(context).textPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold),
                             ),
@@ -170,8 +170,8 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                                 .isNotEmpty) ...[
                               const SizedBox(height: 2),
                               Text(doctor['organisation_name'],
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
+                                  style: TextStyle(
+                                      color: AppThemeColors.of(context).textSecondary,
                                       fontSize: 12)),
                             ],
                           ],
@@ -181,48 +181,48 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Access Scope',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: AppThemeColors.of(context).textPrimary,
                       fontSize: 15,
                       fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
+                    color: AppThemeColors.of(context).bgSurface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08)),
+                        color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08)),
                   ),
                   child: RadioGroup<String>(
                     groupValue: scope,
                     onChanged: (v) => setSheet(() => scope = v!),
                     child: Column(
                       children: [
-                        const RadioListTile<String>(
+                        RadioListTile<String>(
                           value: 'all',
                           activeColor: AppColors.accentBlue,
                           title: Text('All records',
-                              style: TextStyle(color: Colors.white)),
+                              style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
                           subtitle: Text('Doctor can see all records',
                               style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: AppThemeColors.of(context).textSecondary,
                                   fontSize: 12)),
                         ),
                         Divider(
                             height: 1,
-                            color: Colors.white.withValues(alpha: 0.08)),
-                        const RadioListTile<String>(
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08)),
+                        RadioListTile<String>(
                           value: 'category',
                           activeColor: AppColors.accentBlue,
                           title: Text('By category',
-                              style: TextStyle(color: Colors.white)),
+                              style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
                           subtitle: Text(
                               'Doctor sees only a specific category',
                               style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: AppThemeColors.of(context).textSecondary,
                                   fontSize: 12)),
                         ),
                       ],
@@ -233,7 +233,7 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.bgSurface,
+                      color: AppThemeColors.of(context).bgSurface,
                       borderRadius: BorderRadius.circular(12),
                       border:
                           Border.all(color: const Color(0xFF1E2D40)),
@@ -243,12 +243,12 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                     child: DropdownButton<String>(
                       value: category,
                       isExpanded: true,
-                      dropdownColor: AppColors.bgCard,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 14),
+                      dropdownColor: AppThemeColors.of(context).bgCard,
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textPrimary, fontSize: 14),
                       underline: const SizedBox.shrink(),
-                      icon: const Icon(Icons.keyboard_arrow_down,
-                          color: AppColors.textSecondary),
+                      icon: Icon(Icons.keyboard_arrow_down,
+                          color: AppThemeColors.of(context).textSecondary),
                       items: cats
                           .map((c) => DropdownMenuItem<String>(
                                 value: c['value'],
@@ -297,8 +297,8 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: 'Find a Doctor'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: 'Find a Doctor'),
       body: Column(
         children: [
           // Search bar
@@ -306,9 +306,8 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: TextField(
               controller: _searchCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: darkInputDecoration(
-                'Search by name or email',
+              style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+              decoration: darkInputDecoration('Search by name or email', context: context,
                 prefixIcon: Icons.search,
                 suffix: _searchText.isNotEmpty
                     ? GestureDetector(
@@ -316,9 +315,9 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                           _searchCtrl.clear();
                           _debounceSearch('');
                         },
-                        child: const Icon(Icons.clear,
+                        child: Icon(Icons.clear,
                             size: 18,
-                            color: AppColors.textSecondary),
+                            color: AppThemeColors.of(context).textSecondary),
                       )
                     : null,
               ),
@@ -332,10 +331,10 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: AppColors.bgSurface,
+                color: AppThemeColors.of(context).bgSurface,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08)),
+                    color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08)),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
@@ -352,7 +351,7 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                   splashFactory: NoSplash.splashFactory,
                   overlayColor: WidgetStateProperty.all(Colors.transparent),
                   labelColor: Colors.white,
-                  unselectedLabelColor: AppColors.textSecondary,
+                  unselectedLabelColor: AppThemeColors.of(context).textSecondary,
                   labelStyle: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 13),
                   tabs: const [
@@ -411,7 +410,7 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                     ? _emptyState()
                     : RefreshIndicator(
                         color: AppColors.accent,
-                        backgroundColor: AppColors.bgCard,
+                        backgroundColor: AppThemeColors.of(context).bgCard,
                         onRefresh: _loadDoctors,
                         child: ListView.builder(
                           padding:
@@ -437,7 +436,7 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: AppColors.bgSurface,
+        color: AppThemeColors.of(context).bgSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF1E2D40)),
       ),
@@ -445,18 +444,18 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
       child: DropdownButton<String?>(
         value: value,
         isExpanded: true,
-        dropdownColor: AppColors.bgCard,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
+        dropdownColor: AppThemeColors.of(context).bgCard,
+        style: TextStyle(color: AppThemeColors.of(context).textPrimary, fontSize: 14),
         underline: const SizedBox.shrink(),
-        icon: const Icon(Icons.keyboard_arrow_down,
-            color: AppColors.textSecondary),
+        icon: Icon(Icons.keyboard_arrow_down,
+            color: AppThemeColors.of(context).textSecondary),
         hint: Row(
           children: [
-            Icon(icon, color: AppColors.textSecondary, size: 18),
+            Icon(icon, color: AppThemeColors.of(context).textSecondary, size: 18),
             const SizedBox(width: 8),
             Text(hint,
-                style: const TextStyle(
-                    color: AppColors.textSecondary)),
+                style: TextStyle(
+                    color: AppThemeColors.of(context).textSecondary)),
           ],
         ),
         items: [
@@ -465,11 +464,11 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
             child: Row(
               children: [
                 Icon(icon,
-                    color: AppColors.textSecondary, size: 18),
+                    color: AppThemeColors.of(context).textSecondary, size: 18),
                 const SizedBox(width: 8),
                 Text(hint,
-                    style: const TextStyle(
-                        color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textSecondary)),
               ],
             ),
           ),
@@ -478,7 +477,7 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
               value: item,
               child: Text(item,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
             ),
           ),
         ],
@@ -505,8 +504,8 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 15),
                   ),
@@ -531,14 +530,14 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(Icons.local_hospital_outlined,
+                        Icon(Icons.local_hospital_outlined,
                             size: 12,
-                            color: AppColors.textSecondary),
+                            color: AppThemeColors.of(context).textSecondary),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(hosp,
-                              style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                              style: TextStyle(
+                                  color: AppThemeColors.of(context).textSecondary,
                                   fontSize: 12),
                               overflow: TextOverflow.ellipsis),
                         ),
@@ -593,15 +592,15 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
         children: [
           Icon(Icons.person_search,
               size: 64,
-              color: Colors.white.withValues(alpha: 0.2)),
+              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
-          const Text('No doctors found',
+          Text('No doctors found',
               style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 16)),
+                  color: AppThemeColors.of(context).textSecondary, fontSize: 16)),
           const SizedBox(height: 8),
-          const Text('Try a different filter or search term',
+          Text('Try a different filter or search term',
               style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13)),
+                  color: AppThemeColors.of(context).textSecondary, fontSize: 13)),
         ],
       ),
     );

@@ -63,10 +63,10 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
             const SizedBox(width: 10),
             Expanded(
                 child: Text(msg,
-                    style: const TextStyle(color: Colors.white))),
+                    style: TextStyle(color: AppThemeColors.of(context).textPrimary))),
           ],
         ),
-        backgroundColor: AppColors.bgSurface,
+        backgroundColor: AppThemeColors.of(context).bgSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -151,7 +151,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(28)),
                   border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08), width: 1),
+                      color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08), width: 1),
                 ),
                 padding: EdgeInsets.only(
                   left: 24,
@@ -168,7 +168,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -217,8 +217,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(doctorName,
-                                      style: const TextStyle(
-                                          color: Colors.white,
+                                      style: TextStyle(
+                                          color: AppThemeColors.of(context).textPrimary,
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold)),
                                   if (specialization.isNotEmpty) ...[
@@ -240,14 +240,14 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                   if (organisation.isNotEmpty) ...[
                                     const SizedBox(height: 3),
                                     Row(children: [
-                                      const Icon(Icons.local_hospital_outlined,
+                                      Icon(Icons.local_hospital_outlined,
                                           size: 12,
-                                          color: AppColors.textSecondary),
+                                          color: AppThemeColors.of(context).textSecondary),
                                       const SizedBox(width: 4),
                                       Expanded(
                                           child: Text(organisation,
-                                              style: const TextStyle(
-                                                  color: AppColors.textSecondary,
+                                              style: TextStyle(
+                                                  color: AppThemeColors.of(context).textSecondary,
                                                   fontSize: 12),
                                               overflow: TextOverflow.ellipsis)),
                                     ]),
@@ -255,14 +255,14 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                   if (email.isNotEmpty) ...[
                                     const SizedBox(height: 3),
                                     Row(children: [
-                                      const Icon(Icons.email_outlined,
+                                      Icon(Icons.email_outlined,
                                           size: 12,
-                                          color: AppColors.textSecondary),
+                                          color: AppThemeColors.of(context).textSecondary),
                                       const SizedBox(width: 4),
                                       Expanded(
                                           child: Text(email,
-                                              style: const TextStyle(
-                                                  color: AppColors.textSecondary,
+                                              style: TextStyle(
+                                                  color: AppThemeColors.of(context).textSecondary,
                                                   fontSize: 12),
                                               overflow: TextOverflow.ellipsis)),
                                     ]),
@@ -291,9 +291,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          const Text('Access Permissions',
+                          Text('Access Permissions',
                               style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppThemeColors.of(context).textPrimary,
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold)),
                         ],
@@ -303,10 +303,10 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                       // Scope radio buttons — inline in StatefulBuilder so state updates correctly
                       Container(
                         decoration: BoxDecoration(
-                          color: AppColors.bgSurface,
+                          color: AppThemeColors.of(context).bgSurface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08)),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08)),
                         ),
                         child: RadioGroup<String>(
                           groupValue: selectedScope,
@@ -314,28 +314,28 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                               setSheet(() => selectedScope = v!),
                           child: Column(
                             children: [
-                              const RadioListTile<String>(
+                              RadioListTile<String>(
                                 value: 'all',
                                 activeColor: AppColors.accentBlue,
                                 title: Text('All records',
-                                    style: TextStyle(color: Colors.white)),
+                                    style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
                                 subtitle: Text('Doctor can see all records',
                                     style: TextStyle(
-                                        color: AppColors.textSecondary,
+                                        color: AppThemeColors.of(context).textSecondary,
                                         fontSize: 12)),
                               ),
                               Divider(
                                   height: 1,
-                                  color: Colors.white.withValues(alpha: 0.08)),
-                              const RadioListTile<String>(
+                                  color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08)),
+                              RadioListTile<String>(
                                 value: 'category',
                                 activeColor: AppColors.accentBlue,
                                 title: Text('By category',
-                                    style: TextStyle(color: Colors.white)),
+                                    style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
                                 subtitle: Text(
                                     'Doctor sees only a specific category',
                                     style: TextStyle(
-                                        color: AppColors.textSecondary,
+                                        color: AppThemeColors.of(context).textSecondary,
                                         fontSize: 12)),
                               ),
                             ],
@@ -347,7 +347,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                         const SizedBox(height: 12),
                         Container(
                           decoration: BoxDecoration(
-                            color: AppColors.bgSurface,
+                            color: AppThemeColors.of(context).bgSurface,
                             borderRadius: BorderRadius.circular(12),
                             border:
                                 Border.all(color: const Color(0xFF1E2D40)),
@@ -357,12 +357,12 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                           child: DropdownButton<String>(
                             value: selectedCategory,
                             isExpanded: true,
-                            dropdownColor: AppColors.bgCard,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
+                            dropdownColor: AppThemeColors.of(context).bgCard,
+                            style: TextStyle(
+                                color: AppThemeColors.of(context).textPrimary, fontSize: 14),
                             underline: const SizedBox.shrink(),
-                            icon: const Icon(Icons.keyboard_arrow_down,
-                                color: AppColors.textSecondary),
+                            icon: Icon(Icons.keyboard_arrow_down,
+                                color: AppThemeColors.of(context).textSecondary),
                             items: _categories
                                 .map((c) => DropdownMenuItem<String>(
                                       value: c['value'],
@@ -419,15 +419,15 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                             ),
                             child: Center(
                               child: isSaving
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 22,
                                       height: 22,
                                       child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2),
+                                          color: AppThemeColors.of(context).textPrimary, strokeWidth: 2),
                                     )
-                                  : const Text('Save Changes',
+                                  : Text('Save Changes',
                                       style: TextStyle(
-                                          color: Colors.white,
+                                          color: AppThemeColors.of(context).textPrimary,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold)),
                             ),
@@ -483,7 +483,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppThemeColors.of(context).bgCard,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => StatefulBuilder(
@@ -499,9 +499,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Grant Doctor Access',
+                Text('Grant Doctor Access',
                     style: TextStyle(
-                        color: Colors.white,
+                        color: AppThemeColors.of(context).textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -511,8 +511,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                       child: TextField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: darkInputDecoration("Doctor's email",
+                        style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                        decoration: darkInputDecoration("Doctor's email", context: context,
                             prefixIcon: Icons.email_outlined),
                       ),
                     ),
@@ -549,11 +549,11 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                               borderRadius: BorderRadius.circular(12)),
                         ),
                         child: isSearching
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 18,
                                 height: 18,
                                 child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2))
+                                    color: AppThemeColors.of(context).textPrimary, strokeWidth: 2))
                             : const Icon(Icons.search, size: 20),
                       ),
                     ),
@@ -586,15 +586,15 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                             children: [
                               Text(
                                 foundDoctor!['name'] ?? '',
-                                style: const TextStyle(
-                                    color: Colors.white,
+                                style: TextStyle(
+                                    color: AppThemeColors.of(context).textPrimary,
                                     fontWeight: FontWeight.bold),
                               ),
                               if ((foundDoctor!['specialization'] ?? '')
                                   .isNotEmpty)
                                 Text(foundDoctor!['specialization'],
-                                    style: const TextStyle(
-                                        color: AppColors.textSecondary,
+                                    style: TextStyle(
+                                        color: AppThemeColors.of(context).textSecondary,
                                         fontSize: 12)),
                             ],
                           ),
@@ -603,16 +603,16 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Access Scope',
+                  Text('Access Scope',
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                          color: AppThemeColors.of(context).textPrimary, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.bgSurface,
+                      color: AppThemeColors.of(context).bgSurface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1)),
+                          color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.1)),
                     ),
                     child: RadioGroup<String>(
                       groupValue: selectedScope,
@@ -622,25 +622,25 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                           RadioListTile<String>(
                             value: 'all',
                             activeColor: AppColors.accentBlue,
-                            title: const Text('All records',
-                                style: TextStyle(color: Colors.white)),
-                            subtitle: const Text('Doctor can see all records',
+                            title: Text('All records',
+                                style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
+                            subtitle: Text('Doctor can see all records',
                                 style: TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: AppThemeColors.of(context).textSecondary,
                                     fontSize: 12)),
                           ),
                           Divider(
                               height: 1,
-                              color: Colors.white.withValues(alpha: 0.08)),
+                              color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.08)),
                           RadioListTile<String>(
                             value: 'category',
                             activeColor: AppColors.accentBlue,
-                            title: const Text('By category',
-                                style: TextStyle(color: Colors.white)),
-                            subtitle: const Text(
+                            title: Text('By category',
+                                style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
+                            subtitle: Text(
                                 'Doctor sees only a specific category',
                                 style: TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: AppThemeColors.of(context).textSecondary,
                                     fontSize: 12)),
                           ),
                         ],
@@ -651,9 +651,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: selectedCategory,
-                      dropdownColor: AppColors.bgCard,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: darkInputDecoration('Select category',
+                      dropdownColor: AppThemeColors.of(context).bgCard,
+                      style: TextStyle(color: AppThemeColors.of(context).textPrimary),
+                      decoration: darkInputDecoration('Select category', context: context,
                           prefixIcon: Icons.category),
                       items: _categories.map((cat) {
                         return DropdownMenuItem(
@@ -704,8 +704,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: darkGlassAppBar(title: 'Manage Access'),
+      backgroundColor: AppThemeColors.of(context).bg,
+      appBar: darkGlassAppBar(context: context, title: 'Manage Access'),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.accent))
@@ -718,18 +718,18 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                       children: [
                         Icon(Icons.lock_outline,
                             size: 72,
-                            color: Colors.white.withValues(alpha: 0.12)),
+                            color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.12)),
                         const SizedBox(height: 20),
-                        const Text('No Doctors Have Access',
+                        Text('No Doctors Have Access',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppThemeColors.of(context).textPrimary,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Tap the + button to grant a doctor access to your medical records.',
                           style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13),
+                              color: AppThemeColors.of(context).textSecondary, fontSize: 13),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -738,7 +738,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                 )
               : RefreshIndicator(
                   color: AppColors.accent,
-                  backgroundColor: AppColors.bgCard,
+                  backgroundColor: AppThemeColors.of(context).bgCard,
                   onRefresh: _loadPermissions,
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -789,8 +789,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                   children: [
                                     Text(
                                       doctorName,
-                                      style: const TextStyle(
-                                          color: Colors.white,
+                                      style: TextStyle(
+                                          color: AppThemeColors.of(context).textPrimary,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15),
                                     ),
@@ -818,8 +818,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                     const SizedBox(height: 3),
                                     Text(
                                       email,
-                                      style: const TextStyle(
-                                          color: AppColors.textSecondary,
+                                      style: TextStyle(
+                                          color: AppThemeColors.of(context).textSecondary,
                                           fontSize: 12),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -848,8 +848,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Icon(Icons.chevron_right,
-                                  color: AppColors.textSecondary, size: 20),
+                              Icon(Icons.chevron_right,
+                                  color: AppThemeColors.of(context).textSecondary, size: 20),
                             ],
                           ),
                         ),
@@ -867,7 +867,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           onPressed: _showGrantDialog,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: const Icon(Icons.add, color: Colors.white),
+          child: Icon(Icons.add, color: AppThemeColors.of(context).textPrimary),
         ),
       ),
     );
@@ -907,29 +907,29 @@ class _GlassDialog extends StatelessWidget {
               color: AppColors.bgCard.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1)),
+                  color: AppThemeColors.of(context).textPrimary.withValues(alpha: 0.1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 Text(content,
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 14)),
+                    style: TextStyle(
+                        color: AppThemeColors.of(context).textSecondary, fontSize: 14)),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: onCancel,
-                      child: const Text('Cancel',
-                          style: TextStyle(color: AppColors.textSecondary)),
+                      child: Text('Cancel',
+                          style: TextStyle(color: AppThemeColors.of(context).textSecondary)),
                     ),
                     const SizedBox(width: 8),
                     TextButton(
