@@ -136,11 +136,15 @@ router.post('/grant', protect, authorise('patient'), async (req, res) => {
  */
 router.put('/revoke/:permissionId', protect, authorise('patient'), async (req, res) => {
   try {
-    // Retrieve permission by ID
     const permission = await AccessPermission.findById(req.params.permissionId);
     if (!permission) return res.status(404).json({ success: false, message: 'Permission not found' });
 
     const patient = await Patient.findOne({ user_id: req.user._id });
+    if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
+
+    if (!permission.patient_id.equals(patient._id)) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
 
     permission.access_status = 'revoked';
     permission.revoked_at    = new Date();
