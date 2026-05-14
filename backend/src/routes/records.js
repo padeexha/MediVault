@@ -215,6 +215,41 @@ router.post('/:id/download', protect, async (req, res) => {
     if (!record || record.is_deleted) return res.status(404).json({ success: false, message: 'Record not found' });
 
     const patient = await Patient.findById(record.patient_id);
+    if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
+
+    if (req.user.role === 'patient') {
+      if (patient.user_id.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+    }
+
+    if (req.user.role === 'doctor') {
+      const provider = await HealthcareProvider.findOne({ user_id: req.user._id });
+      if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
+      const permission = await AccessPermission.findOne({
+        patient_id:    record.patient_id,
+        provider_id:   provider._id,
+        access_status: 'granted',
+        $or: [
+          { scope_type: 'all' },
+          { scope_type: 'record',   record_id:       record._id },
+          { scope_type: 'category', shared_category: record.category },
+        ],
+      });
+
+      if (!permission) {
+        await logAudit({
+          patientId:    patient._id,
+          actorUserId:  req.user._id,
+          recordId:     record._id,
+          actionType:   'download',
+          actionStatus: 'failure',
+          details:      `Unauthorised download attempt on: ${record.title}`,
+          ip:           req.ip,
+        });
+        return res.status(403).json({ success: false, message: 'You do not have permission to download this record' });
+      }
+    }
 
     await logAudit({
       patientId:   patient._id,

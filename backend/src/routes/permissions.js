@@ -38,25 +38,20 @@ router.post('/grant', protect, authorise('patient'), async (req, res) => {
     const provider = await HealthcareProvider.findOne({ user_id: provider_user_id });
     if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
 
-    let permission = await AccessPermission.findOne({ patient_id: patient._id, provider_id: provider._id });
-
-    if (permission) {
-      permission.scope_type      = scope_type || 'all';
-      permission.shared_category = shared_category || null;
-      permission.record_id       = record_id || null;
-      permission.access_status   = 'granted';
-      permission.granted_at      = new Date();
-      permission.revoked_at      = null;
-      await permission.save();
-    } else {
-      permission = await AccessPermission.create({
-        patient_id:      patient._id,
-        provider_id:     provider._id,
-        scope_type:      scope_type || 'all',
-        shared_category: shared_category || null,
-        record_id:       record_id || null,
-      });
-    }
+    const permission = await AccessPermission.findOneAndUpdate(
+      { patient_id: patient._id, provider_id: provider._id },
+      {
+        $set: {
+          scope_type:      scope_type || 'all',
+          shared_category: shared_category || null,
+          record_id:       record_id || null,
+          access_status:   'granted',
+          granted_at:      new Date(),
+          revoked_at:      null,
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
 
     await logAudit({
       patientId:    patient._id,

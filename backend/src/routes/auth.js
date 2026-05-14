@@ -398,7 +398,7 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `https://medi-vault-backend-28w8.onrender.com/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.BACKEND_URL || 'https://medivaultejaa.onrender.com'}/reset-password/${resetToken}`;
     await sendPasswordResetEmail(user, resetUrl);
 
     res.status(200).json({ success: true, message: 'Password reset email sent' });

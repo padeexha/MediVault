@@ -4,6 +4,8 @@ const { protect, authorise } = require('../middleware/auth');
 const MedicalRecord = require('../models/MedicalRecord');
 const Patient = require('../models/Patient');
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 router.get('/', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
@@ -11,12 +13,17 @@ router.get('/', protect, authorise('patient'), async (req, res) => {
     const { title, category, date_from, date_to, sort_by } = req.query;
 
     const query = { patient_id: patient._id, is_deleted: false };
-    if (title)    query.title    = { $regex: title, $options: 'i' };
+    if (title)    query.title    = { $regex: escapeRegex(title), $options: 'i' };
     if (category) query.category = category;
     if (date_from || date_to) {
+      const from = date_from ? new Date(date_from) : null;
+      const to   = date_to   ? new Date(date_to)   : null;
+      if ((from && isNaN(from)) || (to && isNaN(to))) {
+        return res.status(400).json({ success: false, message: 'Invalid date format' });
+      }
       query.upload_date = {};
-      if (date_from) query.upload_date.$gte = new Date(date_from);
-      if (date_to)   query.upload_date.$lte = new Date(date_to);
+      if (from) query.upload_date.$gte = from;
+      if (to)   query.upload_date.$lte = to;
     }
 
     const sortOptions = {
