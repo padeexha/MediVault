@@ -31,20 +31,12 @@ void main() {
       await _drainCountdown(tester);
     });
 
-    testWidgets('renders 6 digit input boxes', (tester) async {
+    testWidgets('shows Back to Sign In button', (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // There are 6 single-character TextField boxes (maxLength: 1)
-      expect(find.byType(TextField), findsNWidgets(6));
-      await _drainCountdown(tester);
-    });
-
-    testWidgets('shows Verify button', (tester) async {
-      await tester.pumpWidget(_buildTestApp());
-      await tester.pump();
-
-      expect(find.text('Verify'), findsOneWidget);
+      // Screen uses email-link flow — shows Back to Sign In, not a Verify button
+      expect(find.text('Back to Sign In'), findsOneWidget);
       await _drainCountdown(tester);
     });
 
@@ -52,8 +44,8 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Countdown starts at 60 and shows "Resend code in XX s"
-      expect(find.textContaining('Resend code in'), findsOneWidget);
+      // Countdown starts at 60 and shows "Resend email in XX s"
+      expect(find.textContaining('Resend email in'), findsOneWidget);
       await _drainCountdown(tester);
     });
 
@@ -66,28 +58,17 @@ void main() {
       await tester.pump(const Duration(seconds: 60));
       await tester.pump(); // one more frame to rebuild
 
-      expect(find.text('Resend code'), findsOneWidget);
-      expect(find.textContaining('Resend code in'), findsNothing);
+      expect(find.text('Resend verification email'), findsOneWidget);
+      expect(find.textContaining('Resend email in'), findsNothing);
     });
 
-    testWidgets('tapping Verify with fewer than 6 digits shows snackbar',
+    testWidgets('does not use digit input boxes (email-link flow)',
         (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Enter only 3 digits
-      final boxes = find.byType(TextField);
-      await tester.enterText(boxes.at(0), '1');
-      await tester.enterText(boxes.at(1), '2');
-      await tester.enterText(boxes.at(2), '3');
-
-      await tester.tap(find.text('Verify'));
-      await tester.pump();
-
-      expect(
-        find.text('Please enter the complete 6-digit code'),
-        findsOneWidget,
-      );
+      // Screen uses an email link — no digit TextField boxes
+      expect(find.byType(TextField), findsNothing);
       await _drainCountdown(tester);
     });
   });

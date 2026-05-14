@@ -71,9 +71,12 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // .last targets the submit button, not the page title
-      await tester.tap(find.text('Create Account').last);
+      // Form is taller than the 600px test viewport — scroll button into view first
+      final submitBtn = find.text('Create Account').last;
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn, warnIfMissed: false);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       // 'Required' appears for first name (and others); at least one must be visible
       expect(find.text('Required'), findsWidgets);
@@ -90,9 +93,12 @@ void main() {
       await tester.enterText(fields.at(2), 'notanemail');
       await tester.enterText(fields.at(3), 'password123');
 
-      // .last targets the submit button, not the page title
-      await tester.tap(find.text('Create Account').last);
+      // Form is taller than the 600px test viewport — scroll button into view first
+      final submitBtn = find.text('Create Account').last;
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn, warnIfMissed: false);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Invalid email'), findsOneWidget);
     });
@@ -108,9 +114,12 @@ void main() {
       await tester.enterText(fields.at(2), 'jane@example.com');
       await tester.enterText(fields.at(3), 'short');
 
-      // .last targets the submit button, not the page title
-      await tester.tap(find.text('Create Account').last);
+      // Form is taller than the 600px test viewport — scroll button into view first
+      final submitBtn = find.text('Create Account').last;
+      await tester.ensureVisible(submitBtn);
+      await tester.tap(submitBtn, warnIfMissed: false);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Minimum 8 characters'), findsOneWidget);
     });

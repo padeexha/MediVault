@@ -38,7 +38,7 @@ void main() {
       // quick-action tiles unique to PatientDashboard should be present.
       expect(find.text('Sign in to access your secured medical records.'),
           findsNothing);
-      expect(find.text('My Records'), findsOneWidget);
+      expect(find.text('Records'), findsOneWidget);
     });
   });
 }
