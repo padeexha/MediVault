@@ -161,7 +161,6 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
     );
   }
 
-  // ── Success screen ────────────────────────────────────────────────────────
   Widget _successScreen() {
     final catColor =
         _categoryColors[_uploadedCategory] ?? AppThemeColors.of(context).textSecondary;
@@ -294,7 +293,6 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
     );
   }
 
-  // ── Upload form ───────────────────────────────────────────────────────────
   Widget _uploadForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),

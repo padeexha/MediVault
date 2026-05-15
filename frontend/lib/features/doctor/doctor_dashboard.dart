@@ -35,6 +35,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     final user = await ApiService.getUser();
     if (user != null) setState(() => _doctorName = user['name'] ?? '');
 
+    // Fetch profile and shared records in parallel to reduce load time.
     final results = await Future.wait([
       ApiService.get(Constants.getProfile),
       ApiService.get(Constants.sharedWithMe),

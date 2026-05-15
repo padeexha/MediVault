@@ -57,6 +57,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_selectedCategory != 'all') url += 'category=$_selectedCategory&';
     if (_dateFrom != null) url += 'date_from=${_dateFrom!.toIso8601String()}&';
     if (_dateTo != null) {
+      // Extend to end of selected day so records from that date are included.
       final endOfDay = DateTime(_dateTo!.year, _dateTo!.month, _dateTo!.day, 23, 59, 59, 999);
       url += 'date_to=${endOfDay.toIso8601String()}&';
     }

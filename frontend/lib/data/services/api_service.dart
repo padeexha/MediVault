@@ -15,6 +15,8 @@ class ApiService {
     await prefs.setString('token', token);
   }
 
+  // Stores the user JSON blob and also writes the role separately so
+  // the splash screen can read it without decoding the whole user object.
   static Future<void> saveUser(Map<String, dynamic> user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(user));
@@ -42,6 +44,8 @@ class ApiService {
     await prefs.remove('role');
   }
 
+  // Safely decodes the HTTP response body. Returns a consistent error map
+  // if the body is malformed or not JSON so callers don't need to handle exceptions.
   static Map<String, dynamic> _decodeResponse(http.Response response) {
     try {
       final decoded = jsonDecode(response.body);
@@ -112,6 +116,9 @@ class ApiService {
     }
   }
 
+  // Sends a multipart POST with the file and any additional form fields.
+  // The Content-Type is derived from the file extension rather than relying
+  // on the platform's mime-type lookup, which isn't available on all targets.
   static Future<Map<String, dynamic>> uploadFile(
     String url,
     File file,

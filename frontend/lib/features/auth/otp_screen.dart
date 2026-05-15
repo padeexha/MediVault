@@ -31,6 +31,8 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
+  // Resets and restarts the 60-second countdown before allowing another resend.
+  // Called on mount and again after each successful resend.
   void _startCountdown() {
     _resendCountdown = 60;
     _timer?.cancel();

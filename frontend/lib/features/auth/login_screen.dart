@@ -62,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else if (response['requiresVerification'] == true) {
+      // Show a snackbar with a Resend action that opens the verification pending screen
       final email = response['email'] ?? _emailController.text.trim();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

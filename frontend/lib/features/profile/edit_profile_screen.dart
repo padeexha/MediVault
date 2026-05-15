@@ -394,7 +394,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Profile picture ──
                         Center(
                           child: Column(
                             children: [
@@ -445,7 +444,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        // ── Personal information ──
                         _sectionHeader(
                             Icons.person_outline, 'Personal Information'),
                         const SizedBox(height: 12),
@@ -477,7 +475,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               return null;
                             }),
                         const SizedBox(height: 12),
-                        // Gender — fully controlled, drives profile picture default
+                        // Gender selection drives which fallback avatar is shown
                         Container(
                           height: 56,
                           decoration: BoxDecoration(

@@ -109,6 +109,7 @@ class HealthProfileModel {
   int get pendingRequestCount  => accessRequests.where((r) => r.isPending).length;
   int get approvedDoctorCount  => accessRequests.where((r) => r.isApproved).length;
 
+  // A profile is considered complete once the minimum required fields are filled
   bool get isComplete =>
       fullName.isNotEmpty &&
       age != null &&

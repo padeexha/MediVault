@@ -89,8 +89,6 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
     }
   }
 
-  // ── Doctor avatar ───────────────────────────────────────────────────────────
-
   static Widget _doctorAvatar(Map<String, dynamic> doctor, double size) {
     return ProfileAvatar(
       profilePicture: doctor['profile_picture'] as String?,
@@ -99,8 +97,6 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
       radius: size / 2,
     );
   }
-
-  // ── Grant access sheet ──────────────────────────────────────────────────────
 
   Future<void> _showGrantSheet(Map<String, dynamic> doctor) async {
     String scope = 'all';
@@ -291,8 +287,6 @@ class _DoctorSelectionScreenState extends State<DoctorSelectionScreen>
       ),
     );
   }
-
-  // ── Build ───────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {

@@ -3,9 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-// ── AppColors: accent/status (shared) + dark-mode fallbacks for const contexts
+// Accent and status colors that are the same in both dark and light themes.
+// For surface/background colors that change with the theme, use AppThemeColors.of(context).
 class AppColors {
-  // Accent & status — identical in both themes
   static const Color accent      = Color(0xFF00C8FF);
   static const Color accentBlue  = Color(0xFF3D72E8);
   static const Color errorRed    = Color(0xFFE53935);
@@ -16,7 +16,8 @@ class AppColors {
   static const Color blobRed     = Color(0xFF8B1020);
   static const Color blobGreen   = Color(0xFF0B6E3E);
 
-  // Dark-mode fallbacks — kept for const contexts; use AppThemeColors.of(context) for live theming
+  // Dark-mode fallbacks kept for const contexts (e.g. static decorations).
+  // Prefer AppThemeColors.of(context) in widgets so light mode works correctly.
   static const Color bg           = Color(0xFF050C18);
   static const Color bgCard       = Color(0xFF0A1628);
   static const Color bgSurface    = Color(0xFF0F1A2E);
@@ -27,7 +28,7 @@ class AppColors {
   static const Color btnDark      = Color(0xFF15202E);
 }
 
-// ── Adaptive colours ─────────────────────────────────────────────────────────
+// Theme-aware color palette. Use AppThemeColors.of(context) in widgets.
 class AppThemeColors {
   final Color bg;
   final Color bgCard;
@@ -97,7 +98,7 @@ class AppThemeColors {
   }
 }
 
-// ── Colorful blob background for auth screens ────────────────────────────────
+// Radial gradient blob background used on login and register screens.
 class ColorfulBackground extends StatelessWidget {
   final Widget child;
   const ColorfulBackground({super.key, required this.child});
@@ -153,7 +154,7 @@ class ColorfulBackground extends StatelessWidget {
       );
 }
 
-// ── Background with mesh for splash / inner screens ──────────────────────────
+// Gradient + mesh background used on inner screens (dashboard, records, etc.).
 class AppBackground extends StatelessWidget {
   final Widget child;
   const AppBackground({super.key, required this.child});
@@ -210,9 +211,11 @@ class AppBackground extends StatelessWidget {
       );
 }
 
-// Keep DarkBackground as an alias for backward compat in splash screen
+// Alias kept so splash screen and any other callers don't need updating
 typedef DarkBackground = AppBackground;
 
+// Draws a dot-grid mesh on the left and right edges of the screen.
+// Random(42) seeds the jitter so the pattern stays stable across repaints.
 class _MeshPainter extends CustomPainter {
   final bool isDark;
   const _MeshPainter({required this.isDark});
@@ -230,6 +233,7 @@ class _MeshPainter extends CustomPainter {
       ..color = baseColor.withValues(alpha: dotAlpha)
       ..style = PaintingStyle.fill;
 
+    // Only paint the side columns so the center content area stays clean
     _drawRegion(canvas, linePaint, dotPaint, 0, 0, size.width * 0.22, size.height);
     _drawRegion(canvas, linePaint, dotPaint, size.width * 0.78, 0, size.width, size.height);
   }
@@ -244,6 +248,7 @@ class _MeshPainter extends CustomPainter {
 
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
+        // Small random jitter makes the grid look organic rather than rigid
         final jx = (rng.nextDouble() - 0.5) * 10;
         final jy = (rng.nextDouble() - 0.5) * 10;
         pts.add(Offset(x1 + c * step + jx, y1 + r * step + jy));
@@ -266,7 +271,6 @@ class _MeshPainter extends CustomPainter {
   bool shouldRepaint(_MeshPainter old) => old.isDark != isDark;
 }
 
-// ── Glass card ────────────────────────────────────────────────────────────────
 class GlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
@@ -309,7 +313,7 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-// ── Glass text field (auth screens) ──────────────────────────────────────────
+// Blurred glass text field used on auth screens
 class GlassTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -385,7 +389,8 @@ class GlassTextField extends StatelessWidget {
   }
 }
 
-// ── Gradient border button (auth screens) ────────────────────────────────────
+// Gradient-border button used on auth screens.
+// The gradient lives on the outer Container; the interior is a solid surface color.
 class GradientButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -441,7 +446,7 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-// ── Solid action button for inner screens ────────────────────────────────────
+// Solid blue action button for inner screens
 class DarkButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -499,7 +504,6 @@ class DarkButton extends StatelessWidget {
   }
 }
 
-// ── MediVault logo ────────────────────────────────────────────────────────────
 class MediVaultLogo extends StatelessWidget {
   final double scale;
   const MediVaultLogo({super.key, this.scale = 1.0});
@@ -514,7 +518,8 @@ class MediVaultLogo extends StatelessWidget {
   }
 }
 
-// ── Glass app bar for inner screens ──────────────────────────────────────────
+// Frosted-glass app bar for inner screens.
+// The blur effect requires BackdropFilter inside flexibleSpace.
 AppBar darkGlassAppBar({
   required String title,
   List<Widget>? actions,
@@ -558,7 +563,6 @@ AppBar darkGlassAppBar({
   );
 }
 
-// ── Themed list card (replaces DarkListCard) ──────────────────────────────────
 class DarkListCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -592,7 +596,7 @@ class DarkListCard extends StatelessWidget {
   }
 }
 
-// ── Profile avatar ────────────────────────────────────────────────────────────
+// Displays a user's profile picture with a gender/role-based fallback asset
 class ProfileAvatar extends StatelessWidget {
   final String? profilePicture;
   final String? gender;
@@ -643,7 +647,8 @@ class ProfileAvatar extends StatelessWidget {
   }
 }
 
-// ── Themed input decoration for inner screens ─────────────────────────────────
+// Shared InputDecoration factory for form fields on inner screens.
+// Pass context so light/dark colors are resolved correctly.
 InputDecoration darkInputDecoration(
   String label, {
   IconData? prefixIcon,

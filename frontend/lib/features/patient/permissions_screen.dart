@@ -874,8 +874,6 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   }
 }
 
-// ── Glass alert dialog ─────────────────────────────────────────────────────
-
 class _GlassDialog extends StatelessWidget {
   final String title;
   final String content;

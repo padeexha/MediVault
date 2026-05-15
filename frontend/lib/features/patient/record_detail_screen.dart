@@ -69,6 +69,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     }
   }
 
+  // Calls the download endpoint to log the audit event, then opens the file URL.
   Future<void> _logDownload() async {
     setState(() => _isDownloading = true);
     final response = await ApiService.post(

@@ -45,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ? Constants.registerPatient
         : Constants.registerDoctor;
 
+    // Doctor-specific fields are only included when the doctor role is selected.
     final body = {
       'first_name': _firstNameController.text.trim(),
       'last_name': _lastNameController.text.trim(),

@@ -140,6 +140,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
       setState(() => _doctorSearchResults = []);
       return;
     }
+    // 400ms debounce so searches don't fire on every keystroke
     _doctorSearchDebounce =
         Timer(const Duration(milliseconds: 400), _searchDoctors);
   }

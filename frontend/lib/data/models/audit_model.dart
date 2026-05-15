@@ -20,6 +20,7 @@ class AuditModel {
   });
 
   factory AuditModel.fromJson(Map<String, dynamic> json) {
+    // actor_user_id and record_id come in as populated objects, not plain IDs
     final actor = json['actor_user_id'];
     final record = json['record_id'];
     return AuditModel(
@@ -34,6 +35,7 @@ class AuditModel {
     );
   }
 
+  // Maps raw action_type strings to human-readable labels for the UI
   String get actionDisplay {
     switch (actionType) {
       case 'upload': return 'Uploaded a record';

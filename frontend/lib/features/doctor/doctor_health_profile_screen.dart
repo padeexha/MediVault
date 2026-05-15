@@ -239,7 +239,7 @@ class _DoctorHealthProfileScreenState extends State<DoctorHealthProfileScreen> {
   }
 }
 
-// ── Read-only profile view for doctors ────────────────────────────────────────
+// Read-only view that doctors see after accessing an approved patient profile
 class _ProfileViewScreen extends StatelessWidget {
   final HealthProfileModel profile;
   final String patientName;

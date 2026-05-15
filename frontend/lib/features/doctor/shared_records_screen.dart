@@ -38,6 +38,8 @@ class _SharedRecordsScreenState extends State<SharedRecordsScreen> {
     }
   }
 
+  // Calls the download endpoint to log the action, then launches the file URL.
+  // Falls back to record.filePath if the download_url is missing from the response.
   Future<void> _openRecord(RecordModel record) async {
     setState(() => _openingRecordId = record.id);
     try {

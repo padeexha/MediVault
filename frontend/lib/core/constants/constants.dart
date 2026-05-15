@@ -1,4 +1,5 @@
 class Constants {
+  // Falls back to the production URL if the app is not built with --dart-define=API_BASE_URL=...
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'https://medivault-ejaa.onrender.com/api',

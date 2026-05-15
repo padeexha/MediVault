@@ -6,7 +6,7 @@ import 'features/patient/patient_dashboard.dart';
 import 'features/doctor/doctor_dashboard.dart';
 import 'core/theme/app_theme.dart';
 
-// ── Theme controller ──────────────────────────────────────────────────────────
+// Persists the chosen theme to SharedPreferences and notifies listeners via ValueNotifier.
 class ThemeController {
   static final ValueNotifier<ThemeMode> themeMode =
       ValueNotifier(ThemeMode.dark);

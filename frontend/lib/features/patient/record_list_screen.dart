@@ -808,7 +808,6 @@ class _RecordListScreenState extends State<RecordListScreen> {
   }
 }
 
-// ── Confirm Delete / Revoke dialog ────────────────────────────────────────────
 class _ConfirmDialog extends StatelessWidget {
   final String title;
   final String content;

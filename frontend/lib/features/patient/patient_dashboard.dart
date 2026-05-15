@@ -52,7 +52,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     final profileRes  = results[1];
     final permRes     = results[2];
 
-    // Records
     List<RecordModel> records = [];
     if (recordsRes['success'] == true) {
       records = (recordsRes['records'] as List)
@@ -61,7 +60,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
     records.sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
 
-    // Shared-with-doctors count
+    // Count how many of the patient's records are visible to at least one doctor.
+    // Full-access permissions expose all records; category permissions only expose
+    // records that match the shared category.
     int shared = 0;
     if (permRes['success'] == true) {
       final perms = permRes['permissions'] as List? ?? [];
@@ -80,7 +81,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       }
     }
 
-    // Profile completion
     int completionPct = 0;
     String name = '';
     if (profileRes['success'] == true) {
@@ -243,7 +243,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ── Welcome Card ──────────────────────────────────────────────────────────
   Widget _welcomeCard() {
     return DarkListCard(
       child: Padding(
@@ -289,7 +288,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ── Summary stat cards ────────────────────────────────────────────────────
   Widget _summaryCards() {
     return Row(
       children: [
@@ -347,7 +345,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ── Profile completion card ───────────────────────────────────────────────
   Widget _profileCompletionCard() {
     return DarkListCard(
       onTap: () async {
@@ -404,7 +401,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ── Quick actions grid ────────────────────────────────────────────────────
   Widget _actionsGrid() {
     final actions = [
       _ActionItem(Icons.upload_file,     'Upload',       AppColors.accentBlue,       () async {
@@ -449,7 +445,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ── Recent record card ────────────────────────────────────────────────────
   Widget _recentRecordCard(RecordModel record) {
     final color = _categoryColor(record.category);
     return DarkListCard(
@@ -505,7 +500,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   Widget _fileTypeBadge(String fileType) {
     final isImage = fileType.contains('image') ||
         fileType == 'jpg' ||
