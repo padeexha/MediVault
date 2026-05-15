@@ -9,6 +9,7 @@ router.get('/my-logs', protect, authorise('patient'), async (req, res) => {
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
 
+    // Populate references so audit results include readable actor, record, and permission details.
     const logs = await AuditLog.find({ patient_id: patient._id })
       .populate('actor_user_id', 'first_name last_name role')
       .populate('record_id',     'title category')

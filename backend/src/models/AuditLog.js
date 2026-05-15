@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+// Append-only style log for important data-access events.
+// References are nullable so login or failed actions can be recorded even without a record/permission.
 const auditLogSchema = new mongoose.Schema({
   patient_id: {
     type: mongoose.Schema.Types.ObjectId,

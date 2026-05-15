@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+// Embedded subdocument used to store doctor access decisions inside a patient's profile.
+// Keeping these with the profile makes profile-access checks a single document lookup.
 const accessRequestSchema = new mongoose.Schema({
   doctor_id:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   doctor_name:  { type: String, default: '' },
@@ -13,6 +15,8 @@ const accessRequestSchema = new mongoose.Schema({
   responded_at: { type: Date },
 }, { _id: true });
 
+// Stores structured health information for a patient account.
+// patient_id references User here because this profile is managed directly by the patient login.
 const healthProfileSchema = new mongoose.Schema({
   patient_id:               { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   full_name:                { type: String, default: '' },

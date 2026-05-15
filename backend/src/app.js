@@ -4,6 +4,9 @@ const cors    = require('cors');
 const connectDB = require('./config/database');
 
 dotenv.config({ path: require('path').join(__dirname, '..', '.env') });
+
+// Open the MongoDB connection before registering routes so every request
+// handler can use the Mongoose models against the same shared connection.
 connectDB();
 
 const app = express();

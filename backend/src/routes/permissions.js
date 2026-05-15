@@ -84,6 +84,7 @@ router.post('/grant', protect, authorise('patient'), async (req, res) => {
     if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
 
     // Grant or update permission with scope specification
+    // Upsert keeps one permission document per patient/provider pair and changes its scope in place.
     const permission = await AccessPermission.findOneAndUpdate(
       { patient_id: patient._id, provider_id: provider._id },
       {
@@ -201,6 +202,7 @@ router.get('/my-doctors', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
+    // Populate provider_id.user_id so the API returns doctor profile fields with each permission.
     const permissions = await AccessPermission.find({ patient_id: patient._id, access_status: 'granted' })
       .populate({ path: 'provider_id', populate: { path: 'user_id', select: 'first_name last_name email gender profile_picture' } });
     res.status(200).json({ success: true, permissions });
@@ -214,6 +216,7 @@ router.get('/shared-with-me', protect, authorise('doctor'), async (req, res) => 
   try {
     const provider = await HealthcareProvider.findOne({ user_id: req.user._id });
     if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
+    // Load active permission documents first, then translate each scope into a MedicalRecord query.
     const permissions = await AccessPermission.find({ provider_id: provider._id, access_status: 'granted' })
       .populate({
         path: 'patient_id',
@@ -221,6 +224,7 @@ router.get('/shared-with-me', protect, authorise('doctor'), async (req, res) => 
       });
 
     const result = await Promise.all(permissions.map(async (perm) => {
+      // Build the record query from the permission scope without exposing unrelated records.
       const query = { patient_id: perm.patient_id._id, is_deleted: false };
       if (perm.scope_type === 'category') query.category = perm.shared_category;
       if (perm.scope_type === 'record')   query._id      = perm.record_id;

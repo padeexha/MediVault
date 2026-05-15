@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+// Each medical record belongs to one patient and keeps metadata for the uploaded file.
+// The file itself is stored outside MongoDB; file_path points to Firebase Storage or local uploads.
 const medicalRecordSchema = new mongoose.Schema({
   patient_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -27,6 +29,8 @@ const medicalRecordSchema = new mongoose.Schema({
   file_size: { type: Number },
   file_path: { type: String, required: true },
   upload_date: { type: Date, default: Date.now },
+
+  // Soft-delete fields keep record history available for audits while hiding it from normal queries.
   is_deleted:  { type: Boolean, default: false },
   deleted_at:  { type: Date, default: null },
 }, { timestamps: true });

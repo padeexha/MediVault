@@ -9,6 +9,7 @@ router.get('/my-profile', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
       return res.status(403).json({ success: false, message: 'Patients only' });
+    // HealthProfile uses the patient's User id as patient_id, so this lookup returns the caller's profile.
     const profile = await HealthProfile.findOne({ patient_id: req.user._id });
     return res.json({ success: true, profile: profile || null, exists: !!profile });
   } catch (err) {
@@ -42,6 +43,7 @@ router.post('/save', protect, async (req, res) => {
       emergency_contact_number: emergency_contact_number || '',
     };
 
+    // Upsert creates the profile on first save and updates the same document after that.
     const profile = await HealthProfile.findOneAndUpdate(
       { patient_id: req.user._id },
       { $set: update },
@@ -81,9 +83,11 @@ router.post('/grant-access', protect, async (req, res) => {
 
     const doctorName = `${doctorUser.first_name || ''} ${doctorUser.last_name || ''}`.trim();
 
+    // Load or create the profile document before updating its embedded access_requests array.
     let profile = await HealthProfile.findOne({ patient_id: req.user._id });
     if (!profile) profile = new HealthProfile({ patient_id: req.user._id });
 
+    // Embedded access requests are matched by doctor id to avoid duplicate access entries.
     const existing = profile.access_requests.find(
       r => r.doctor_id.toString() === doctorUser._id.toString(),
     );
@@ -116,9 +120,11 @@ router.put('/approve/:requestId', protect, async (req, res) => {
     if (req.user.role !== 'patient')
       return res.status(403).json({ success: false, message: 'Patients only' });
 
+    // Only the patient owner can update a request stored inside their profile document.
     const profile = await HealthProfile.findOne({ patient_id: req.user._id });
     if (!profile) return res.status(404).json({ success: false, message: 'Profile not found' });
 
+    // Mongoose subdocument lookup finds the embedded request by its _id.
     const request = profile.access_requests.id(req.params.requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
 
@@ -137,9 +143,11 @@ router.put('/reject/:requestId', protect, async (req, res) => {
     if (req.user.role !== 'patient')
       return res.status(403).json({ success: false, message: 'Patients only' });
 
+    // Only the patient owner can update a request stored inside their profile document.
     const profile = await HealthProfile.findOne({ patient_id: req.user._id });
     if (!profile) return res.status(404).json({ success: false, message: 'Profile not found' });
 
+    // Mongoose subdocument lookup finds the embedded request by its _id.
     const request = profile.access_requests.id(req.params.requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
 
@@ -158,9 +166,11 @@ router.put('/revoke/:requestId', protect, async (req, res) => {
     if (req.user.role !== 'patient')
       return res.status(403).json({ success: false, message: 'Patients only' });
 
+    // Only the patient owner can revoke a request stored inside their profile document.
     const profile = await HealthProfile.findOne({ patient_id: req.user._id });
     if (!profile) return res.status(404).json({ success: false, message: 'Profile not found' });
 
+    // Mongoose subdocument lookup finds the embedded request by its _id.
     const request = profile.access_requests.id(req.params.requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
 
@@ -179,6 +189,7 @@ router.get('/view/:patientId', protect, async (req, res) => {
     if (req.user.role !== 'doctor')
       return res.status(403).json({ success: false, message: 'Doctors only' });
 
+    // Doctors request a patient profile by User id, then access is checked against embedded approvals.
     const profile = await HealthProfile.findOne({ patient_id: req.params.patientId });
     if (!profile)
       return res.status(404).json({ success: false, message: 'Profile not found or not yet created' });
@@ -202,6 +213,7 @@ router.get('/my-access', protect, async (req, res) => {
     if (req.user.role !== 'doctor')
       return res.status(403).json({ success: false, message: 'Doctors only' });
 
+    // Query embedded access_requests to list every patient profile connected to this doctor.
     const profiles = await HealthProfile.find({
       'access_requests.doctor_id': req.user._id,
     }).populate('patient_id', 'first_name last_name email profile_picture gender');

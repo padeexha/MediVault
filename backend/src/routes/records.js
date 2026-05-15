@@ -30,6 +30,8 @@ const saveRecordFile = async (req, patientId) => {
   return `${req.protocol}://${req.get('host')}/uploads/${localName}`;
 };
 
+// Writes audit rows through the AuditLog model without blocking the main request
+// if audit persistence fails.
 const logAudit = async ({ patientId, actorUserId, recordId = null, permissionId = null, actionType, actionStatus = 'success', details, ip }) => {
   try {
     await AuditLog.create({
@@ -54,11 +56,13 @@ router.post('/upload', protect, authorise('patient'), upload.single('file'), asy
     const { title, category, notes } = req.body;
     if (!title || !category) return res.status(400).json({ success: false, message: 'Title and category are required' });
 
+    // Resolve the authenticated User into its Patient document before storing the record.
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
 
     const fileUrl = await saveRecordFile(req, patient._id);
 
+    // Store only record metadata in MongoDB; the binary file is stored separately.
     const record = await MedicalRecord.create({
       patient_id:          patient._id,
       uploaded_by_user_id: req.user._id,
@@ -88,8 +92,11 @@ router.post('/upload', protect, authorise('patient'), upload.single('file'), asy
 
 router.get('/', protect, authorise('patient'), async (req, res) => {
   try {
+    // Patient lookup scopes the record query to the current owner.
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
+
+    // Normal record lists exclude soft-deleted records.
     const records = await MedicalRecord.find({ patient_id: patient._id, is_deleted: false })
       .sort({ upload_date: -1 });
     res.status(200).json({ success: true, count: records.length, records });
@@ -100,6 +107,7 @@ router.get('/', protect, authorise('patient'), async (req, res) => {
 
 router.get('/:id', protect, async (req, res) => {
   try {
+    // Fetch the record first, then verify the caller owns it or has a matching permission.
     const record = await MedicalRecord.findById(req.params.id);
     if (!record || record.is_deleted) return res.status(404).json({ success: false, message: 'Record not found' });
 
@@ -115,6 +123,7 @@ router.get('/:id', protect, async (req, res) => {
     if (req.user.role === 'doctor') {
       const provider = await HealthcareProvider.findOne({ user_id: req.user._id });
       if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
+      // Doctors can access the record through full, record-level, or category-level grants.
       const permission = await AccessPermission.findOne({
         patient_id:    record.patient_id,
         provider_id:   provider._id,
@@ -159,6 +168,7 @@ router.put('/:id', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
+    // Include patient_id in the update lookup so patients can only edit their own records.
     const record = await MedicalRecord.findOne({ _id: req.params.id, patient_id: patient._id });
     if (!record || record.is_deleted) return res.status(404).json({ success: false, message: 'Record not found' });
 
@@ -187,9 +197,11 @@ router.delete('/:id', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
+    // Include patient_id in the delete lookup so patients can only delete their own records.
     const record = await MedicalRecord.findOne({ _id: req.params.id, patient_id: patient._id });
     if (!record || record.is_deleted) return res.status(404).json({ success: false, message: 'Record not found' });
 
+    // Soft delete keeps the database row available for audit/history.
     record.is_deleted = true;
     record.deleted_at = new Date();
     await record.save();
@@ -211,6 +223,7 @@ router.delete('/:id', protect, authorise('patient'), async (req, res) => {
 
 router.post('/:id/download', protect, async (req, res) => {
   try {
+    // Fetch the record first, then use the same ownership/permission checks as view.
     const record = await MedicalRecord.findById(req.params.id);
     if (!record || record.is_deleted) return res.status(404).json({ success: false, message: 'Record not found' });
 
@@ -226,6 +239,7 @@ router.post('/:id/download', protect, async (req, res) => {
     if (req.user.role === 'doctor') {
       const provider = await HealthcareProvider.findOne({ user_id: req.user._id });
       if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
+      // Doctors can download only when an active permission matches the requested record.
       const permission = await AccessPermission.findOne({
         patient_id:    record.patient_id,
         provider_id:   provider._id,
