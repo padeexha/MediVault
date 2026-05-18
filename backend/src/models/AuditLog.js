@@ -21,7 +21,7 @@ const auditLogSchema = new mongoose.Schema({
     type: String,
     enum: [
       'upload', 'view', 'download', 'delete', 'edit',
-      'permission_granted', 'permission_revoked',
+      'permission_granted', 'permission_revoked', 'permission_updated',
       'login', 'logout', 'password_reset',
     ],
     required: true,
