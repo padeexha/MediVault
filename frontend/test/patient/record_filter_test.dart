@@ -32,6 +32,7 @@ RecordModel _makeRecord(String id, String title, String category) {
 }
 
 void main() {
+  // five records across four categories - enough variety to test all the filter combinations
   final records = [
     _makeRecord('1', 'Blood Test Report', 'lab_report'),
     _makeRecord('2', 'Chest X-Ray', 'radiology'),
@@ -66,6 +67,7 @@ void main() {
     });
 
     test('combined search and category filter', () {
+      // 'blood' matches records 1 and 4, both of which happen to be lab_report
       final result = filterRecords(records, 'blood', 'lab_report');
       expect(result.length, 2);
       expect(result.every((r) => r.category == 'lab_report'), true);

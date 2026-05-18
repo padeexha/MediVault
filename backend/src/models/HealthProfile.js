@@ -18,6 +18,7 @@ const accessRequestSchema = new mongoose.Schema({
 // Stores structured health information for a patient account.
 // patient_id references User here because this profile is managed directly by the patient login.
 const healthProfileSchema = new mongoose.Schema({
+  // One profile per patient user
   patient_id:               { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   full_name:                { type: String, default: '' },
   age:                      { type: Number, default: null },

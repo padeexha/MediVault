@@ -88,8 +88,10 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
           content: Row(children: [
             const Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 18),
             const SizedBox(width: 10),
-            Text('Please select a file to upload',
-                style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
+            Expanded(
+              child: Text('Please select a file to upload',
+                  style: TextStyle(color: AppThemeColors.of(context).textPrimary)),
+            ),
           ]),
           backgroundColor: AppThemeColors.of(context).bgSurface,
           behavior: SnackBarBehavior.floating,
@@ -341,10 +343,13 @@ class _UploadRecordScreenState extends State<UploadRecordScreen>
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
                 const Spacer(),
-                Text('PDF, JPEG, PNG — max 20 MB',
-                    style: TextStyle(
-                        color: AppThemeColors.of(context).textSecondary.withValues(alpha: 0.7),
-                        fontSize: 11)),
+                Flexible(
+                  child: Text('PDF, JPEG, PNG — max 20 MB',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: AppThemeColors.of(context).textSecondary.withValues(alpha: 0.7),
+                          fontSize: 11)),
+                ),
               ],
             ),
             const SizedBox(height: 12),

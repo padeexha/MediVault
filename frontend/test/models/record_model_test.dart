@@ -111,6 +111,8 @@ void main() {
       });
 
       test('unknown category falls back to Other', () {
+        // if the server adds a new category the app doesn't know about yet,
+        // 'Other' is a safe default rather than showing a blank label
         expect(makeRecord('unknown_type').categoryDisplay, 'Other');
       });
 

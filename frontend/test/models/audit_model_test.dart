@@ -3,6 +3,8 @@ import 'package:medi_vault/data/models/audit_model.dart';
 
 void main() {
   group('AuditModel', () {
+    // actor_user_id and record_id are objects here because the backend
+    // populates them via Mongoose; the raw IDs would be plain strings
     final Map<String, dynamic> fullJson = {
       '_id': 'audit001',
       'action_type': 'upload',
@@ -91,6 +93,8 @@ void main() {
       test('password_reset', () => expect(makeLog('password_reset').actionDisplay, 'Reset password'));
 
       test('unknown type falls back to the raw action type', () {
+        // if a new action type is added server-side but not yet in the switch,
+        // we still show something rather than an empty string
         expect(makeLog('custom_action').actionDisplay, 'custom_action');
       });
     });

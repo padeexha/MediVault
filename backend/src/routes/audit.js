@@ -4,6 +4,9 @@ const { protect, authorise } = require('../middleware/auth');
 const AuditLog = require('../models/AuditLog');
 const Patient = require('../models/Patient');
 
+// Returns all audit log entries for the logged-in patient, newest first.
+// Populates actor, record and permission fields so the client can display names
+// without making extra requests.
 router.get('/my-logs', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });

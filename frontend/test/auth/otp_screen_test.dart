@@ -6,6 +6,7 @@ import 'package:medi_vault/features/auth/otp_screen.dart';
 const String _testEmail = 'user@example.com';
 
 Widget _buildTestApp({String? role}) {
+  // wrap in MaterialApp so Navigator and theme are available
   return MaterialApp(
     home: OtpScreen(email: _testEmail, role: role),
   );
@@ -35,7 +36,7 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Screen uses email-link flow — shows Back to Sign In, not a Verify button
+      // email-link flow, so there's a Back to Sign In button instead of Verify
       expect(find.text('Back to Sign In'), findsOneWidget);
       await _drainCountdown(tester);
     });
@@ -67,7 +68,8 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Screen uses an email link — no digit TextField boxes
+      // verification happens via a link in the email, not a typed code,
+      // so there should be no text input fields on this screen
       expect(find.byType(TextField), findsNothing);
       await _drainCountdown(tester);
     });

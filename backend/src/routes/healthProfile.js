@@ -4,7 +4,8 @@ const { protect } = require('../middleware/auth');
 const HealthProfile = require('../models/HealthProfile');
 const User = require('../models/User');
 
-// ── Patient: get own health profile (with access requests) ──────────────────
+// Returns the patient's own health profile including the access_requests array
+// so the client can show which doctors currently have access.
 router.get('/my-profile', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
@@ -17,7 +18,8 @@ router.get('/my-profile', protect, async (req, res) => {
   }
 });
 
-// ── Patient: save (create or update) health profile ─────────────────────────
+// Create or update the patient's health profile (upsert).
+// Array fields default to empty arrays if not provided so partial saves work correctly.
 router.post('/save', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
@@ -56,7 +58,7 @@ router.post('/save', protect, async (req, res) => {
   }
 });
 
-// ── Doctor: request-access disabled — patients must grant access directly ─────
+// Disabled — doctors can't request access; patients must grant it directly via /grant-access
 router.post('/request-access', protect, async (_req, res) => {
   return res.status(403).json({
     success: false,
@@ -64,7 +66,8 @@ router.post('/request-access', protect, async (_req, res) => {
   });
 });
 
-// ── Patient: directly grant a doctor access to their health profile ───────────
+// Allows a patient to grant a doctor access by email without waiting for a request.
+// If the doctor already has a non-approved entry, it gets flipped to approved.
 router.post('/grant-access', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
@@ -114,7 +117,6 @@ router.post('/grant-access', protect, async (req, res) => {
   }
 });
 
-// ── Patient: approve a doctor's access request ──────────────────────────────
 router.put('/approve/:requestId', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
@@ -137,7 +139,6 @@ router.put('/approve/:requestId', protect, async (req, res) => {
   }
 });
 
-// ── Patient: reject a doctor's access request ───────────────────────────────
 router.put('/reject/:requestId', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
@@ -160,7 +161,6 @@ router.put('/reject/:requestId', protect, async (req, res) => {
   }
 });
 
-// ── Patient: revoke an approved doctor's access ─────────────────────────────
 router.put('/revoke/:requestId', protect, async (req, res) => {
   try {
     if (req.user.role !== 'patient')
@@ -183,7 +183,8 @@ router.put('/revoke/:requestId', protect, async (req, res) => {
   }
 });
 
-// ── Doctor: view a patient's health profile (approved only) ─────────────────
+// Doctor can view a patient's profile only if there's an approved entry in access_requests.
+// The access_requests array is stripped from the response so doctors can't see who else has access.
 router.get('/view/:patientId', protect, async (req, res) => {
   try {
     if (req.user.role !== 'doctor')
@@ -207,7 +208,8 @@ router.get('/view/:patientId', protect, async (req, res) => {
   }
 });
 
-// ── Doctor: list all patients they have requested / have access to ───────────
+// Returns all patients that have an access_requests entry for this doctor,
+// regardless of status, so the doctor can see approved and revoked history.
 router.get('/my-access', protect, async (req, res) => {
   try {
     if (req.user.role !== 'doctor')

@@ -3,6 +3,7 @@ import 'package:medi_vault/data/models/user_model.dart';
 
 void main() {
   group('UserModel', () {
+    // two fixtures - one per role - so we can test both branches of isPatient/isDoctor
     final Map<String, dynamic> patientJson = {
       'id': 'user123',
       'name': 'Jane Doe',

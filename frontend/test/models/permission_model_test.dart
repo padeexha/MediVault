@@ -18,6 +18,7 @@ void main() {
 
     group('fromJson', () {
       test('parses all required fields', () {
+        // fullJson has scope_type: 'all' which is the simplest case
         final perm = PermissionModel.fromJson(fullJson);
 
         expect(perm.id, 'perm001');
@@ -64,6 +65,8 @@ void main() {
       });
 
       test('scopeType defaults to all when missing', () {
+        // 'all' is the safest default - the UI should show full access if the server
+        // somehow returns a permission record without a scope
         final json = Map<String, dynamic>.from(fullJson)..remove('scope_type');
         final perm = PermissionModel.fromJson(json);
 

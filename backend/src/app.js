@@ -3,6 +3,7 @@ const dotenv  = require('dotenv');
 const cors    = require('cors');
 const connectDB = require('./config/database');
 
+// Load .env from the project root (one level above /src)
 dotenv.config({ path: require('path').join(__dirname, '..', '.env') });
 
 // Open the MongoDB connection before registering routes so every request
@@ -12,9 +13,11 @@ connectDB();
 const app = express();
 
 app.use(cors());
+// Request logger — handy for tracing API calls in dev and production logs
 app.use((req, _res, next) => { console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`); next(); });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Serve locally saved uploads (used as fallback when Firebase is not configured)
 app.use('/uploads', express.static(require('path').join(__dirname, '..', 'uploads')));
 
 app.use('/api/auth',           require('./routes/auth'));
@@ -28,8 +31,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'Medi Vault API is running', version: '1.0.0' });
 });
 
+// Global error handler — catches errors passed via next(err) or thrown by multer
 app.use((err, req, res, next) => {
   console.error('FULL ERROR:', err);
+  // Multer throws these specific codes/messages for file validation failures
   if (err.message.includes('Unsupported file type')) {
     return res.status(400).json({ success: false, message: err.message });
   }
@@ -40,10 +45,13 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+// Skip starting the server when running tests — tests import the app directly
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => console.log(`Medi Vault server running on port ${PORT}`));
 }
 
+// Self-contained HTML page served for password reset links sent via email.
+// The page embeds inline JS that calls the API, so no separate frontend is needed.
 app.get('/reset-password/:token', (req, res) => {
   const token = req.params.token;
   const apiBase = process.env.BACKEND_URL || 'https://medivaultejaa.onrender.com';

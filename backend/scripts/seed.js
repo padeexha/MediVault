@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 const HealthcareProvider = require('./models/HealthcareProvider');
 
+// Sample Sri Lankan doctors used to populate a fresh database for testing and demos
 const doctors = [
   {
     first_name: 'Priya',

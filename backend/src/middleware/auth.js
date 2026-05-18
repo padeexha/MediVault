@@ -1,29 +1,15 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-/**
- * SECURITY: JWT Authentication Middleware
- * - Protects routes from unauthorized access by verifying JWT tokens
- * - Extracts bearer token from Authorization header
- * - Validates token signature using JWT_SECRET (prevents token tampering)
- * - Verifies token expiration (prevents replay attacks with stale tokens)
- * - Attaches authenticated user to request object for downstream middlewares
- * - Returns 401 for missing/invalid tokens, 403 for authorization failures
- * 
- * Threat Prevention:
- * 1. Unauthorized Access: Only users with valid JWT can access protected routes
- * 2. Token Tampering: JWT signature verification ensures token integrity
- * 3. Session Replay: Token expiration (JWT_EXPIRES_IN) limits token lifetime
- */
+// Verifies the Bearer token from the Authorization header and attaches the
+// full user document to req.user so downstream handlers don't have to re-query.
 exports.protect = async (req, res, next) => {
   let token;
 
-  // Extract JWT from Bearer token in Authorization header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 
-  // Return 401 if no token provided
   if (!token) {
     return res.status(401).json({
       success: false,
@@ -32,13 +18,11 @@ exports.protect = async (req, res, next) => {
   }
 
   try {
-    // Verify JWT signature and expiration using secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Retrieve full user object from database to ensure user still exists and is active
+    // Load from DB so changes like account deletion take effect immediately
     req.user = await User.findById(decoded.id);
     next();
   } catch (error) {
-    // Return 401 for invalid or expired tokens
     return res.status(401).json({
       success: false,
       message: 'Invalid or expired session. Please log in again.',
@@ -46,21 +30,10 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-/**
- * SECURITY: Role-Based Access Control (RBAC) Middleware
- * - Implements fine-grained authorization based on user roles
- * - Validates that user has one of the required roles before granting access
- * - Returns 403 Forbidden for insufficient privileges
- * - Must be used AFTER protect() middleware to ensure user is authenticated
- * 
- * Threat Prevention:
- * 1. Privilege Escalation: Ensures users can only access resources matching their role
- * 2. Unauthorized Data Access: Prevents patients from accessing doctor-only endpoints
- * 3. Administrative Actions: Restricts sensitive operations to authorized roles only
- */
+// Factory that returns a middleware checking req.user.role against the allowed list.
+// Must be used after protect() since it relies on req.user being set.
 exports.authorise = (...roles) => {
   return (req, res, next) => {
-    // Check if current user's role is in the allowed roles list
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,

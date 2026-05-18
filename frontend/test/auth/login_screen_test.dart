@@ -98,8 +98,8 @@ void main() {
       await tester.enterText(
           find.byType(TextFormField).last, 'password123');
 
-      // Do NOT tap Sign In (would trigger network call).
-      // Just verify the field values are accepted without visible errors.
+      // don't tap Sign In here - that would kick off a real network request
+      // and fail in the test environment; just check no inline errors are shown
       expect(find.text('Please enter your email'), findsNothing);
       expect(find.text('Please enter a valid email'), findsNothing);
       expect(find.text('Please enter your password'), findsNothing);
@@ -112,11 +112,11 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // EditableText is the leaf that carries obscureText
+      // EditableText is the internal leaf widget that holds the obscureText flag;
+      // the last one in the tree is always the password field
       final editableTexts = tester.widgetList<EditableText>(
         find.byType(EditableText),
       ).toList();
-      // Last EditableText corresponds to the password field
       expect(editableTexts.last.obscureText, true);
     });
 

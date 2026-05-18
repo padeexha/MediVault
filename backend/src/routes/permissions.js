@@ -8,29 +8,9 @@ const MedicalRecord = require('../models/MedicalRecord');
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 
+// Writes an audit entry for permission events. Failures here shouldn't break
+// the main request, so errors are swallowed after logging.
 const logAudit = async ({ patientId, actorUserId, permissionId = null, actionType, details, ip }) => {
-  /**
-   * SECURITY: Audit Logging Function
-   * - Records all permission changes for compliance with healthcare regulations (HIPAA, GDPR)
-   * - Captures actor (who made change), patient, action type, timestamp, and IP address
-   * - Enables forensic investigation and accountability for data access
-   * - Immutable audit trail prevents tampering with permission history
-   * 
-   * Logged Information:
-   * 1. Patient ID: Which patient's records were affected
-   * 2. Actor User ID: Who performed the action (authentication + authorization)
-   * 3. Permission ID: Which specific permission was modified
-   * 4. Action Type: grant, revoke, update, view, etc.
-   * 5. IP Address: Source of request (helps detect unauthorized access)
-   * 6. Timestamp: When action occurred (auto-added by MongoDB)
-   * 7. Details: Contextual information about the action
-   * 
-   * Threat Prevention:
-   * 1. Non-Repudiation: Complete audit trail proves who accessed what and when
-   * 2. Unauthorized Access Detection: IP anomalies may indicate account compromise
-   * 3. Compliance Violations: Audit log provides evidence for regulatory audits
-   * 4. Insider Threats: Tracks data access patterns to detect suspicious behavior
-   */
   try {
     await AuditLog.create({
       patient_id:    patientId,
@@ -46,44 +26,23 @@ const logAudit = async ({ patientId, actorUserId, permissionId = null, actionTyp
   }
 };
 
-// Grant access
-/**
- * SECURITY: Grant Access Endpoint - Healthcare Provider Access Control
- * - Only patient (resource owner) can grant access to their medical records
- * - Validates both patient and provider exist before granting access
- * - Restricts provider access via role enum ('doctor' only)
- * - Records permission grant in audit log for compliance
- * - Creates upsert: grants new or updates existing permission
- * 
- * Access Control:
- * 1. Authentication: protect middleware ensures user is logged in
- * 2. Authorization: authorise('patient') ensures only patients can grant (ownership)
- * 3. Validation: Verifies doctor exists and is valid healthcare provider
- * 4. Scope Types: 'all' (full access), 'category' (specific type), 'record' (single record)
- * 
- * Threat Prevention:
- * 1. Privilege Escalation: Enum roles prevent non-patients from granting access
- * 2. Unauthorized Access: Only patient can grant access to own records
- * 3. Ghost Provider Grants: Validates provider exists before permission creation
- * 4. Audit Trail: All grants logged with actor ID and timestamp
- */
+// Grant or update access from a patient to a specific doctor.
+// Uses upsert so granting again updates scope rather than creating a duplicate.
 router.post('/grant', protect, authorise('patient'), async (req, res) => {
   try {
     const { provider_user_id, scope_type, shared_category, record_id } = req.body;
 
-    // Verify requesting user is a patient (ownership validation)
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
-    // Verify provider exists and has 'doctor' role (authorization check)
+
     const providerUser = await User.findById(provider_user_id);
     if (!providerUser || providerUser.role !== 'doctor') {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
     }
-    // Verify provider profile exists (prevents orphaned permissions)
+
     const provider = await HealthcareProvider.findOne({ user_id: provider_user_id });
     if (!provider) return res.status(404).json({ success: false, message: 'Healthcare provider profile not found' });
 
-    // Grant or update permission with scope specification
     // Upsert keeps one permission document per patient/provider pair and changes its scope in place.
     const permission = await AccessPermission.findOneAndUpdate(
       { patient_id: patient._id, provider_id: provider._id },
@@ -115,26 +74,7 @@ router.post('/grant', protect, authorise('patient'), async (req, res) => {
   }
 });
 
-// Revoke access
-/**
- * SECURITY: Revoke Access Endpoint - Permission Revocation
- * - Only patient (resource owner) can revoke access to their records
- * - Marks permission as 'revoked' with timestamp (maintains audit trail)
- * - Does NOT delete permission record (preserves history for compliance)
- * - Logs revocation action for regulatory compliance
- * - Revoked permissions prevent future data access by provider
- * 
- * Access Control:
- * 1. Authentication: protect middleware ensures user is logged in
- * 2. Authorization: authorise('patient') ensures only patients can revoke
- * 3. Ownership: Only patient who owns the permission can revoke it
- * 
- * Threat Prevention:
- * 1. Unauthorized Revocation: Only patient can revoke their own permissions
- * 2. Audit Trail Destruction: Soft delete (mark as revoked) preserves history
- * 3. Persistent Access: Revocation timestamp enforces access cutoff
- * 4. Compliance: Timestamped revocation records provide evidence of data control
- */
+// Marks the permission as revoked rather than deleting it so the audit trail stays complete
 router.put('/revoke/:permissionId', protect, authorise('patient'), async (req, res) => {
   try {
     const permission = await AccessPermission.findById(req.params.permissionId);
@@ -143,6 +83,7 @@ router.put('/revoke/:permissionId', protect, authorise('patient'), async (req, r
     const patient = await Patient.findOne({ user_id: req.user._id });
     if (!patient) return res.status(404).json({ success: false, message: 'Patient profile not found' });
 
+    // Make sure this permission actually belongs to the requesting patient
     if (!permission.patient_id.equals(patient._id)) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
@@ -166,7 +107,7 @@ router.put('/revoke/:permissionId', protect, authorise('patient'), async (req, r
   }
 });
 
-// Update permission scope (full ↔ category)
+// Update permission scope (e.g. switching from full access to category-level)
 router.put('/:permissionId', protect, authorise('patient'), async (req, res) => {
   try {
     const permission = await AccessPermission.findById(req.params.permissionId);
@@ -179,6 +120,7 @@ router.put('/:permissionId', protect, authorise('patient'), async (req, res) => 
 
     const { scope_type, shared_category } = req.body;
     if (scope_type) permission.scope_type = scope_type;
+    // Clear shared_category when scope is not 'category'
     permission.shared_category = scope_type === 'category' ? (shared_category || null) : null;
     await permission.save();
 
@@ -197,7 +139,7 @@ router.put('/:permissionId', protect, authorise('patient'), async (req, res) => 
   }
 });
 
-// List doctors with access (patient view)
+// Patient view: lists all doctors currently with granted access
 router.get('/my-doctors', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
@@ -211,7 +153,8 @@ router.get('/my-doctors', protect, authorise('patient'), async (req, res) => {
   }
 });
 
-// List records shared with doctor — includes patient name
+// Doctor view: fetches all patients that have granted the doctor access,
+// along with the specific records they can see based on permission scope.
 router.get('/shared-with-me', protect, authorise('doctor'), async (req, res) => {
   try {
     const provider = await HealthcareProvider.findOne({ user_id: req.user._id });

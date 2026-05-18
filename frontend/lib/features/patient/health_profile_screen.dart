@@ -538,6 +538,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen>
     );
   }
 
+  // Splits access requests into three sections so the patient can act on pending
+  // requests first without having to scroll past already-resolved ones.
   Widget _buildAccessTab() {
     final requests = _profile?.accessRequests ?? [];
     final pending  = requests.where((r) => r.isPending).toList();

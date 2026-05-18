@@ -19,7 +19,7 @@ void main() {
 
       expect(find.text('Patient'), findsOneWidget);
       expect(find.text('Doctor'), findsOneWidget);
-      // "Create Account" appears as both the page title and the submit button
+      // "Create Account" appears as both the page heading and the submit button label
       expect(find.text('Create Account'), findsNWidgets(2));
     });
 
@@ -51,11 +51,10 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Switch to Doctor
       await tester.tap(find.text('Doctor'));
       await tester.pump();
 
-      // Switch back to Patient
+      // tapping Patient a second time should toggle the extra fields back off
       await tester.tap(find.text('Patient'));
       await tester.pump();
 
@@ -71,7 +70,7 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Form is taller than the 600px test viewport — scroll button into view first
+      // form is taller than the 600px viewport, scroll to button first
       final submitBtn = find.text('Create Account').last;
       await tester.ensureVisible(submitBtn);
       await tester.tap(submitBtn, warnIfMissed: false);
@@ -93,7 +92,7 @@ void main() {
       await tester.enterText(fields.at(2), 'notanemail');
       await tester.enterText(fields.at(3), 'password123');
 
-      // Form is taller than the 600px test viewport — scroll button into view first
+      // form is taller than the 600px viewport, scroll to button first
       final submitBtn = find.text('Create Account').last;
       await tester.ensureVisible(submitBtn);
       await tester.tap(submitBtn, warnIfMissed: false);
@@ -114,7 +113,7 @@ void main() {
       await tester.enterText(fields.at(2), 'jane@example.com');
       await tester.enterText(fields.at(3), 'short');
 
-      // Form is taller than the 600px test viewport — scroll button into view first
+      // form is taller than the 600px viewport, scroll to button first
       final submitBtn = find.text('Create Account').last;
       await tester.ensureVisible(submitBtn);
       await tester.tap(submitBtn, warnIfMissed: false);

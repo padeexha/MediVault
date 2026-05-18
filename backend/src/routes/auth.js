@@ -11,41 +11,31 @@ const AuditLog = require('../models/AuditLog');
 const { protect, authorise } = require('../middleware/auth');
 const bucket = require('../config/firebase');
 
+// Resolves a user ID to the corresponding Patient document ID.
+// Used when logging audit events for doctors (who have no Patient row).
 const getPatientId = async (userId) => {
   const patient = await Patient.findOne({ user_id: userId });
   return patient ? patient._id : null;
 };
 
+// Checks if the Brevo API key looks like it was actually set and not left as a placeholder
 const hasEmailService = () => {
   const key = process.env.BREVO_API_KEY || '';
   return key && !key.includes('your_');
 };
 
-/**
- * SECURITY: Email Verification Token Generation
- * - Creates cryptographically secure random token for email verification
- * - Hash function prevents token leakage if database is compromised
- * - 24-hour expiration prevents indefinite account creation vulnerabilities
- * - Prevents account takeover through fake email registration
- * 
- * Token Security:
- * - 32-byte random token = 256 bits of entropy (cryptographically secure)
- * - Stored as SHA256 hash in database (prevents extraction if DB breached)
- * - Plaintext token only sent in email (visible only to recipient)
- * - Attacker cannot forge valid token without knowing hashing algorithm
- */
+// Generates a secure random token, stores its SHA-256 hash in the user document,
+// and sends the plaintext token via email. The DB only ever holds the hash, so
+// a database dump can't be used to verify accounts without the original token.
 const sendVerificationEmail = async (user) => {
-  // Generate 32 bytes (256 bits) of cryptographically secure random data
   const token = crypto.randomBytes(32).toString('hex');
-  // Hash token before storing in database - prevents token extraction if DB is compromised
   user.verificationToken = crypto.createHash('sha256').update(token).digest('hex');
-  // Set 24-hour expiration to limit account creation window
+  // 24-hour window before the link expires
   user.verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  // Save token hash to database (plaintext token never stored)
   await user.save({ validateBeforeSave: false });
 
   if (!hasEmailService()) {
-    console.warn(`[VERIFY] Email service not configured. Token for ${user.email}: ${token}`);
+    console.warn('[VERIFY] Email service not configured. Account will be auto-verified.');
     return false;
   }
 
@@ -91,7 +81,7 @@ const sendVerificationEmail = async (user) => {
 
 const sendPasswordResetEmail = async (user, resetUrl) => {
   if (!hasEmailService()) {
-    console.warn(`[RESET] Email service not configured. Reset URL: ${resetUrl}`);
+    console.warn('[RESET] Email service not configured. Password reset email skipped.');
     return false;
   }
 
@@ -141,26 +131,12 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
   return true;
 };
 
-/**
- * SECURITY: JWT Token Generation
- * - Creates stateless JWT for authentication after login
- * - Payload includes only essential claims (user ID and role)
- * - Signed with server secret to prevent tampering
- * - Expiration time limits token validity window
- * - No sensitive data (passwords, emails) included in token
- * 
- * Threat Prevention:
- * 1. Stateless Auth: JWT reduces server-side state management complexity
- * 2. Token Tampering: HMAC signature ensures token integrity
- * 3. Long-lived Sessions: Expiration (JWT_EXPIRES_IN) forces re-authentication
- * 4. Information Disclosure: No sensitive data in JWT payload
- */
+// Signs a JWT with just the user ID and role — no sensitive fields in the payload
 const sendToken = (user, statusCode, res) => {
-  // Create JWT with user ID and role only (minimal claims principle)
   const token = jwt.sign(
-    { id: user._id, role: user.role }, // Only essential claims
-    process.env.JWT_SECRET, // Server secret prevents token forgery
-    { expiresIn: process.env.JWT_EXPIRES_IN } // Force re-authentication after expiry
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN }
   );
   res.status(statusCode).json({
     success: true,
@@ -174,41 +150,19 @@ const sendToken = (user, statusCode, res) => {
   });
 };
 
-/**
- * SECURITY: Password Strength Validation
- * - Enforces strong password requirements to resist brute-force attacks
- * - Requires minimum 8 characters plus complexity requirements
- * - Combination prevents dictionary attacks and common weak passwords
- * - Applied during registration and password reset flows
- * 
- * Requirements:
- * 1. Minimum 8 characters (sufficient entropy: ~50-60 bits)
- * 2. At least 1 lowercase letter (a-z) - increases character set
- * 3. At least 1 uppercase letter (A-Z) - increases character set
- * 4. At least 1 digit (0-9) - prevents all-alpha passwords
- * 5. At least 1 special character (!@#$%^&*...) - highest entropy boost
- * 
- * Threat Prevention:
- * 1. Brute-Force Attacks: 8-char mixed case takes ~2,000 years to crack (at 100k guesses/sec)
- * 2. Dictionary Attacks: Special char requirement eliminates common dictionary words
- * 3. Credential Stuffing: Strong unique passwords less likely in breach databases
- */
+// Password complexity check: min 8 chars plus upper, lower, digit, and special character
 const validatePassword = (password) => {
-  // Check minimum length (8+ characters recommended by NIST)
   if (!password || password.length < 8) return false;
-  // Require at least one lowercase letter
   if (!/[a-z]/.test(password)) return false;
-  // Require at least one uppercase letter
   if (!/[A-Z]/.test(password)) return false;
-  // Require at least one numeric digit
   if (!/[0-9]/.test(password)) return false;
-  // Require at least one special character for highest entropy
   if (!/[^A-Za-z0-9]/.test(password)) return false;
   return true;
 };
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Pre-populated Sri Lankan hospitals merged with any new ones from the database
 const SL_DEFAULT_HOSPITALS = [
   'Apollo Hospital Colombo','Asiri Central Hospital','Asiri Surgical Hospital',
   'Base Hospital Kurunegala','District General Hospital Batticaloa',
@@ -232,6 +186,7 @@ const SL_DEFAULT_SPECIALIZATIONS = [
   'Pulmonology','Radiology','Rheumatology','Urology',
 ];
 
+// Merges db values with the defaults list, deduplicates (case-insensitive), and sorts alphabetically
 const mergeWithDefaults = (dbValues, defaults) => {
   const seen = new Set(dbValues.map(v => v.toLowerCase()));
   const merged = [...dbValues];
@@ -241,54 +196,24 @@ const mergeWithDefaults = (dbValues, defaults) => {
   return merged.sort((a, b) => a.localeCompare(b));
 };
 
-// ─── REGISTER PATIENT ────────────────────────────────────────────────────────
-/**
- * SECURITY: Patient Registration Endpoint
- * - Validates and sanitizes all input fields before storage
- * - Uses regex whitelisting for name fields (prevents XSS injection)
- * - Email validation ensures valid format (prevents email enumeration)
- * - Checks for duplicate email (prevents account takeover)
- * - Enforces strong password complexity requirements
- * - Sends email verification link (proves email ownership)
- * - Creates separate Patient profile linked to User
- * 
- * Input Validation:
- * 1. first_name/last_name: Trimmed, non-empty, alpha+space/hyphen/apostrophe (prevents injection)
- * 2. email: Valid RFC format check (prevents malformed emails)
- * 3. password: Min 8 chars + complexity check (brute-force resistant)
- * 4. phone_number: Optional, digits/+/-/()/space only (prevents injection)
- * 
- * Threat Prevention:
- * 1. SQL/NoSQL Injection: Mongoose schema validation + express-validator prevents injection
- * 2. XSS: Regex whitelisting on names (no special chars allowed)
- * 3. Email Enumeration: Returns same response for existing/new emails (prevents user enumeration)
- * 4. Account Takeover: Email verification required before account is usable
- */
 router.post('/register/patient', async (req, res) => {
   try {
-    // SECURITY: Input validation and sanitization using express-validator
-    // .trim() removes leading/trailing whitespace
-    // .notEmpty() ensures field is provided
-    // .matches(regex) whitelist approach - only allows safe characters
-    // .isEmail() validates RFC email format
+    // Validate and sanitize inputs before touching the database.
+    // Name regex allows letters, spaces, hyphens, and apostrophes only.
     await body('first_name').trim().notEmpty().withMessage('First name is required')
       .matches(/^[a-zA-Z][a-zA-Z\s'\-]*$/).withMessage('First name can only contain letters, spaces, hyphens, and apostrophes').run(req);
     await body('last_name').trim().notEmpty().withMessage('Last name is required')
       .matches(/^[a-zA-Z][a-zA-Z\s'\-]*$/).withMessage('Last name can only contain letters, spaces, hyphens, and apostrophes').run(req);
-    // Email validation prevents malformed email addresses
     await body('email').isEmail().withMessage('Please provide a valid email').run(req);
     await body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters').run(req);
-    // Phone number is optional but if provided must match format
     await body('phone_number').optional({ checkFalsy: true }).trim()
       .matches(/^[0-9+\-\s()]*$/).withMessage('Phone number can only contain digits, spaces, +, -, and ()').run(req);
 
-    // Check for validation errors and return first error to user
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ success: false, message: errors.array()[0].msg });
 
     const { first_name, last_name, email, password, date_of_birth, gender, address, phone_number } = req.body;
 
-    // Validate password complexity (in addition to length)
     if (!validatePassword(password)) {
       return res.status(400).json({
         success: false,
@@ -296,7 +221,6 @@ router.post('/register/patient', async (req, res) => {
       });
     }
 
-    // Check for existing user with same email (prevents duplicate accounts)
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ success: false, message: 'Email is already registered' });
 
@@ -305,6 +229,7 @@ router.post('/register/patient', async (req, res) => {
 
     const emailSent = await sendVerificationEmail(user);
 
+    // If the email service is not configured, auto-verify the account so dev setups still work
     if (!emailSent) {
       user.isVerified = true;
       await user.save({ validateBeforeSave: false });
@@ -322,7 +247,6 @@ router.post('/register/patient', async (req, res) => {
   }
 });
 
-// ─── REGISTER DOCTOR ─────────────────────────────────────────────────────────
 router.post('/register/doctor', async (req, res) => {
   try {
     await body('first_name').trim().notEmpty().withMessage('First name is required')
@@ -373,7 +297,8 @@ router.post('/register/doctor', async (req, res) => {
   }
 });
 
-// ─── VERIFY EMAIL ────────────────────────────────────────────────────────────
+// Hashes the URL token and looks it up. Expired or invalid tokens show an HTML error page
+// so the user sees something readable rather than a JSON blob in their browser.
 router.get('/verify-email/:token', async (req, res) => {
   try {
     const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
@@ -409,7 +334,6 @@ router.get('/verify-email/:token', async (req, res) => {
   }
 });
 
-// ─── RESEND VERIFICATION ─────────────────────────────────────────────────────
 router.post('/resend-verification', async (req, res) => {
   try {
     const { email } = req.body;
@@ -426,12 +350,12 @@ router.post('/resend-verification', async (req, res) => {
   }
 });
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ success: false, message: 'Please provide email and password' });
 
+    // password_hash is excluded by default — must be explicitly selected here
     const user = await User.findOne({ email }).select('+password_hash');
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -457,7 +381,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ─── LOGOUT ──────────────────────────────────────────────────────────────────
 router.post('/logout', protect, async (req, res) => {
   try {
     const patientId = await getPatientId(req.user._id);
@@ -475,7 +398,7 @@ router.post('/logout', protect, async (req, res) => {
   }
 });
 
-// ─── FORGOT PASSWORD ─────────────────────────────────────────────────────────
+// Generates a reset token valid for 10 minutes and emails the link
 router.post('/forgot-password', async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -495,7 +418,8 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// ─── RESET PASSWORD ──────────────────────────────────────────────────────────
+// Validates the token from the reset URL, then sets the new password.
+// Setting password_hash triggers the pre-save hook which re-hashes it.
 router.put('/reset-password/:token', async (req, res) => {
   try {
     const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
@@ -527,7 +451,6 @@ router.put('/reset-password/:token', async (req, res) => {
   }
 });
 
-// ─── CHANGE PASSWORD ─────────────────────────────────────────────────────────
 router.put('/change-password', protect, async (req, res) => {
   try {
     const { current_password, new_password } = req.body;
@@ -557,7 +480,9 @@ router.put('/change-password', protect, async (req, res) => {
   }
 });
 
-// ─── DELETE ACCOUNT ──────────────────────────────────────────────────────────
+// Requires the user to confirm their password before deletion.
+// Cascades: patient data (records, permissions, audit logs) or doctor data (permissions, provider profile)
+// is cleaned up before the User document is removed.
 router.delete('/delete-account', protect, async (req, res) => {
   try {
     const { password } = req.body;
@@ -593,7 +518,7 @@ router.delete('/delete-account', protect, async (req, res) => {
   }
 });
 
-// ─── PROFILE ─────────────────────────────────────────────────────────────────
+// Returns the user's profile along with role-specific fields (Patient or HealthcareProvider)
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -627,6 +552,8 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+// Updates the shared User fields plus role-specific fields in Patient or HealthcareProvider.
+// Only fields that are actually present in the body are updated.
 router.put('/profile', protect, async (req, res) => {
   try {
     const { first_name, last_name, phone_number, gender, specialization, organisation_name, date_of_birth, address } = req.body;
@@ -676,7 +603,7 @@ router.put('/profile', protect, async (req, res) => {
   }
 });
 
-// ─── PROFILE PICTURE ─────────────────────────────────────────────────────────
+// Uploads a profile picture to Firebase or local disk and saves the URL on the user document
 router.post('/profile/picture', protect, require('../middleware/upload').single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
@@ -715,7 +642,7 @@ router.post('/profile/picture', protect, require('../middleware/upload').single(
   }
 });
 
-// ─── SEARCH DOCTOR ───────────────────────────────────────────────────────────
+// Allows a patient to find a doctor by email before granting access
 router.get('/search-doctor', protect, authorise('patient'), async (req, res) => {
   try {
     const { email } = req.query;
@@ -743,6 +670,8 @@ router.get('/search-doctor', protect, authorise('patient'), async (req, res) => 
   }
 });
 
+// Lists doctors with optional filters for hospital and specialization.
+// Also returns the merged filter lists (db values + defaults) for the dropdown menus.
 router.get('/doctors', protect, authorise('patient'), async (req, res) => {
   try {
     const organisationName = (req.query.organisation_name || '').toString().trim();
@@ -750,6 +679,7 @@ router.get('/doctors', protect, authorise('patient'), async (req, res) => {
     const search = (req.query.search || '').toString().trim();
 
     const providerFilter = {};
+    // Exact match with case-insensitive flag so "Apollo hospital colombo" still matches
     if (organisationName) providerFilter.organisation_name = { $regex: `^${escapeRegex(organisationName)}$`, $options: 'i' };
     if (specialization) providerFilter.specialization = { $regex: `^${escapeRegex(specialization)}$`, $options: 'i' };
 
@@ -766,6 +696,7 @@ router.get('/doctors', protect, authorise('patient'), async (req, res) => {
       .populate({ path: 'user_id', select: 'first_name last_name email role isVerified gender profile_picture', match: userMatch })
       .sort({ organisation_name: 1, specialization: 1, createdAt: -1 });
 
+    // Filter out providers whose user didn't match (populate returns null for non-matches)
     const doctors = providers.filter(p => p.user_id).map(p => ({
       user_id: p.user_id._id,
       name: `${p.user_id.first_name} ${p.user_id.last_name}`,

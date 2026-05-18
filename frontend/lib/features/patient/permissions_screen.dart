@@ -472,6 +472,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     );
   }
 
+  // Two-step grant flow: find the doctor by email first, then pick scope.
+  // The scope controls and Grant button only appear after a doctor is found.
   Future<void> _showGrantDialog() async {
     final emailController = TextEditingController();
     String selectedScope = 'all';

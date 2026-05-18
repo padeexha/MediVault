@@ -11,6 +11,8 @@ const AccessPermission = require('../models/AccessPermission');
 const AuditLog = require('../models/AuditLog');
 const bucket = require('../config/firebase');
 
+// Saves the uploaded file to Firebase if available, otherwise falls back to local disk.
+// Returns a public URL in both cases so the calling code doesn't need to branch.
 const saveRecordFile = async (req, patientId) => {
   const fileName = `records/${patientId}/${Date.now()}_${req.file.originalname}`;
 
@@ -23,6 +25,7 @@ const saveRecordFile = async (req, patientId) => {
     return `https://storage.googleapis.com/${process.env.FIREBASE_STORAGE_BUCKET}/${fileName}`;
   }
 
+  // Local fallback: write to /uploads and return a URL relative to this server
   const localName = `${Date.now()}_${req.file.originalname}`;
   const uploadDir = path.join(__dirname, '..', '..', 'uploads');
   await fs.mkdir(uploadDir, { recursive: true });
@@ -90,6 +93,7 @@ router.post('/upload', protect, authorise('patient'), upload.single('file'), asy
   }
 });
 
+// List all non-deleted records for the logged-in patient, newest first
 router.get('/', protect, authorise('patient'), async (req, res) => {
   try {
     // Patient lookup scopes the record query to the current owner.
@@ -105,6 +109,8 @@ router.get('/', protect, authorise('patient'), async (req, res) => {
   }
 });
 
+// Single record — accessible by the owning patient or a doctor with matching permission.
+// Doctors need a permission that covers 'all', this specific record, or this category.
 router.get('/:id', protect, async (req, res) => {
   try {
     // Fetch the record first, then verify the caller owns it or has a matching permission.
@@ -136,6 +142,7 @@ router.get('/:id', protect, async (req, res) => {
       });
 
       if (!permission) {
+        // Log failed access attempts so patients can see who tried to view their records
         await logAudit({
           patientId:    patient._id,
           actorUserId:  req.user._id,
@@ -164,6 +171,7 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
+// Edit metadata only — file replacement is not supported
 router.put('/:id', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
@@ -193,6 +201,7 @@ router.put('/:id', protect, authorise('patient'), async (req, res) => {
   }
 });
 
+// Soft delete — sets is_deleted flag instead of removing the document
 router.delete('/:id', protect, authorise('patient'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ user_id: req.user._id });
@@ -221,6 +230,8 @@ router.delete('/:id', protect, authorise('patient'), async (req, res) => {
   }
 });
 
+// Called when a user opens a file in the app. Logs the download action and
+// returns the stored file URL. Permission checks mirror the GET /:id endpoint.
 router.post('/:id/download', protect, async (req, res) => {
   try {
     // Fetch the record first, then use the same ownership/permission checks as view.

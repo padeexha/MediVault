@@ -4,6 +4,7 @@ const { protect, authorise } = require('../middleware/auth');
 const MedicalRecord = require('../models/MedicalRecord');
 const Patient = require('../models/Patient');
 
+// Escapes special regex characters so user-supplied title strings can't break the query
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 router.get('/', protect, authorise('patient'), async (req, res) => {

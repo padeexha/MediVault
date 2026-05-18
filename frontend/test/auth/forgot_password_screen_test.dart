@@ -45,6 +45,7 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
+      // tap without filling in anything - should show a snackbar, not a form error
       await tester.tap(find.text('Send Reset Link'));
       await tester.pump();
 
