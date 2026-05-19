@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:medi_vault/features/auth/otp_screen.dart';
+import 'package:medi_vault/features/auth/email_verification_screen.dart';
 
 const String _testEmail = 'user@example.com';
 
 Widget _buildTestApp({String? role}) {
-  // wrap in MaterialApp so Navigator and theme are available
   return MaterialApp(
-    home: OtpScreen(email: _testEmail, role: role),
+    home: EmailVerificationScreen(email: _testEmail, role: role),
   );
 }
 
@@ -23,7 +22,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('OtpScreen UI', () {
+  group('EmailVerificationScreen UI', () {
     testWidgets('displays the email address passed as argument', (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
@@ -36,40 +35,33 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // email-link flow, so there's a Back to Sign In button instead of Verify
       expect(find.text('Back to Sign In'), findsOneWidget);
       await _drainCountdown(tester);
     });
 
-    testWidgets('shows countdown timer text initially', (tester) async {
+    testWidgets('shows resend countdown text immediately after screen opens', (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Countdown starts at 60 and shows "Resend email in XX s"
       expect(find.textContaining('Resend email in'), findsOneWidget);
       await _drainCountdown(tester);
     });
 
-    testWidgets('resend link appears after countdown reaches zero',
-        (tester) async {
+    testWidgets('resend link appears after countdown reaches zero', (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // Drain the 60-second countdown
       await tester.pump(const Duration(seconds: 60));
-      await tester.pump(); // one more frame to rebuild
+      await tester.pump();
 
       expect(find.text('Resend verification email'), findsOneWidget);
       expect(find.textContaining('Resend email in'), findsNothing);
     });
 
-    testWidgets('does not use digit input boxes (email-link flow)',
-        (tester) async {
+    testWidgets('has no text input fields because verification is done via email link', (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pump();
 
-      // verification happens via a link in the email, not a typed code,
-      // so there should be no text input fields on this screen
       expect(find.byType(TextField), findsNothing);
       await _drainCountdown(tester);
     });

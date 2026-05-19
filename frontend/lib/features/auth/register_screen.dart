@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/services/api_service.dart';
 import '../../core/constants/constants.dart';
 import '../../core/theme/app_theme.dart';
-import 'otp_screen.dart';
+import 'email_verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => OtpScreen(email: email, role: _selectedRole),
+            builder: (_) => EmailVerificationScreen(email: email, role: _selectedRole),
           ),
         );
       } else {

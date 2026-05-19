@@ -7,7 +7,7 @@ import '../patient/patient_dashboard.dart';
 import '../doctor/doctor_dashboard.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
-import 'otp_screen.dart';
+import 'email_verification_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
             label: 'Resend',
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => OtpScreen(email: email)),
+              MaterialPageRoute(builder: (_) => EmailVerificationScreen(email: email)),
             ),
           ),
         ),

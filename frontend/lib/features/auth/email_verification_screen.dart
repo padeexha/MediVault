@@ -4,17 +4,17 @@ import '../../data/services/api_service.dart';
 import '../../core/constants/constants.dart';
 import '../../core/theme/app_theme.dart';
 
-class OtpScreen extends StatefulWidget {
+class EmailVerificationScreen extends StatefulWidget {
   final String email;
   final String? role;
 
-  const OtpScreen({super.key, required this.email, this.role});
+  const EmailVerificationScreen({super.key, required this.email, this.role});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   bool _isResending = false;
   int _resendCountdown = 60;
   Timer? _timer;
